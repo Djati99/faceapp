@@ -118,13 +118,13 @@
                                     </a>                                    
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('sendsapindex') }}" class="nav-link">
+                                    <a href="{{ route('weblog') }}" class="nav-link">
                                         <i class="fa fa-chart-bar"></i>
-                                        <span class="title">Send Data</span>
+                                        <span class="title">Log</span>
                                         <span class="selected"></span>
                                         <span class="arrow "></span>
                                     </a>                                    
-                                </li>
+                                </li>                                
                                 <li class="nav-item">
                                     <a href="{{ route('sendsapindex') }}" class="nav-link">
                                         <i class="fa fa-chart-bar"></i>
@@ -216,10 +216,10 @@
                                                 </div>
                                             </div>
                                         </div>
-<!--                                        <div class="form-actions right">
-                                            <button type="submit" class="btn btn-outline btn-circle btn-md blue" data-toggle="modal"
-                                                    data-target="#save_modal"><i class="fa fa-save"></i> Save</button>
-                                        </div>-->
+                                        <!--                                        <div class="form-actions right">
+                                                                                    <button type="submit" class="btn btn-outline btn-circle btn-md blue" data-toggle="modal"
+                                                                                            data-target="#save_modal"><i class="fa fa-save"></i> Save</button>
+                                                                                </div>-->
                                 </div>
                                 </form>
                             </div>
@@ -285,40 +285,40 @@
             location.reload();
             }
             $(document).ready(function ()
-                    {
-                    $(document).on('focus', ':input', function () {
-                    $(this).attr('autocomplete', 'off');
-                    });
-                    $.ajaxSetup({
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                    });
-                    $('#startdate').datepicker({ format: 'yyyy-mm-dd',autoclose: true, });
-                    $('#enddate').datepicker({ format: 'yyyy-mm-dd',autoclose: true, });
-                    $('#send_sap').click(function () {
-                    if (this.value !== 'undefined') {
-                    $.ajax({
-                    method: "POST",
-                            url: "sendsap.transfer",
-                            data: {date_start: $('#startdate').val(),date_end: $('#enddate').val()},
-                            dataType: 'json',
-                            beforeSend: function () {
-                            $('#spinner-div').show();
-                            },
-                            success: function (msg) {
-                            $('#spinner-div').hide();
-                            if (msg.status == 'success') {
-                            alert("Transfer completed. System success to collect data and send data to SAP.");
-                            } else {
-                                var txt = 'Transfer Completed.' + msg.message
+            {
+            $(document).on('focus', ':input', function () {
+            $(this).attr('autocomplete', 'off');
+            });
+            $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+            });
+            $('#startdate').datepicker({ format: 'yyyy-mm-dd', autoclose: true, });
+            $('#enddate').datepicker({ format: 'yyyy-mm-dd', autoclose: true, });
+            $('#send_sap').click(function () {
+            if (this.value !== 'undefined') {
+            $.ajax({
+            method: "POST",
+                    url: "sendsap.transfer",
+                    data: {date_start: $('#startdate').val(), date_end: $('#enddate').val()},
+                    dataType: 'json',
+                    beforeSend: function () {
+                    $('#spinner-div').show();
+                    },
+                    success: function (msg) {
+                    $('#spinner-div').hide();
+                    if (msg.status == 'success') {
+                    alert("Transfer completed. System success to collect data and send data to SAP.");
+                    } else {
+                    var txt = 'Transfer Completed.' + msg.message
                             alert(txt)
-                            }
-                            }
-                    })
                     }
-                    })
-                            })
+                    }
+            })
+            }
+            })
+            })
 
 // $("#date_radio_button").click(function (e) { 
 //     e.preventDefault();

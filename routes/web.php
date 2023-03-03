@@ -23,6 +23,15 @@ Route::namespace("Web")
             Route::get('/data', [\App\Http\Controllers\Web\FaceController::class, 'getData'])->name('data');
             Route::get('/data_beautifullify', [\App\Http\Controllers\Web\FaceController::class, 'getDataFormatted'])->name('data_pretty');
         });
+Route::namespace("Web")
+        ->name("web")
+        ->prefix('log')
+        ->group(function () {
+            Route::get('/', [\App\Http\Controllers\Web\LogController::class, 'report_formatted'])->name('log');
+            Route::get('/rawlog', [\App\Http\Controllers\Web\LogController::class, 'report'])->name('report_raw_log');
+            Route::get('/datalog', [\App\Http\Controllers\Web\LogController::class, 'getData'])->name('datalog');
+            Route::get('/data_beautifullify_log', [\App\Http\Controllers\Web\LogController::class, 'getDataFormatted'])->name('data_pretty_log');
+        });
 //Route::namespace("Web")
 //        ->name("web")
 //        ->prefix('report')
@@ -32,7 +41,7 @@ Route::namespace("Web")
 //        });
 //            Route::resource('report', \App\Http\Controllers\Web\ExportController::class);
 Route::get('', [\App\Http\Controllers\Web\SettingController::class, 'index'])->name('index');
-Route::get('/home', [\App\Http\Controllers\Web\SettingController::class, 'index'])->name('index');
+Route::get('/home', [\App\Http\Controllers\Web\SettingController::class, 'index'])->name('home');
 Route::resource('setting', \App\Http\Controllers\Web\SettingController::class);
 Route::get('sendsap', [\App\Http\Controllers\Web\SendSapController::class,'index'])->name('sendsapindex');
 Route::post('sendsap.transfer', [\App\Http\Controllers\Web\SendSapController::class, 'transfer_sap'])->name('sendsap.transfer');

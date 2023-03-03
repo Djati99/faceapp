@@ -118,6 +118,14 @@
                                     </a>                                    
                                 </li>
                                 <li class="nav-item">
+                                    <a href="{{ route('weblog') }}" class="nav-link">
+                                        <i class="fa fa-chart-bar"></i>
+                                        <span class="title">Log</span>
+                                        <span class="selected"></span>
+                                        <span class="arrow "></span>
+                                    </a>                                    
+                                </li>                                
+                                <li class="nav-item">
                                     <a href="{{ route('sendsapindex') }}" class="nav-link">
                                         <i class="fa fa-chart-bar"></i>
                                         <span class="title">Sent Data</span>
@@ -306,39 +314,39 @@
             location.reload();
             }
             $(document).ready(function ()
-                    {
-                    $(document).on('focus', ':input', function () {
-                    $(this).attr('autocomplete', 'off');
-                    });
-                    $.ajaxSetup({
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            {
+            $(document).on('focus', ':input', function () {
+            $(this).attr('autocomplete', 'off');
+            });
+            $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+            });
+            $('#startdate').datetimepicker();
+            $('#enddate').datetimepicker();
+            $('#test_conn').click(function () {
+            if (this.value !== 'undefined') {
+            $.ajax({
+            method: "POST",
+                    url: "setting.check",
+                    data: {ip_check: $('#ip_server_fr').val()},
+                    dataType: 'json',
+                    beforeSend: function () {
+                    $('#spinner-div').show();
+                    },
+                    success: function (msg) {
+                    $('#spinner-div').hide();
+                    if (msg.status == 'success') {
+                    alert("Check Completed. System success to connect FR API.");
+                    } else {
+                    alert('Check Completed. System fail to connect FR API')
                     }
-                    });
-                    $('#startdate').datetimepicker();
-                    $('#enddate').datetimepicker();
-                    $('#test_conn').click(function () {
-                    if (this.value !== 'undefined') {
-                    $.ajax({
-                    method: "POST",
-                            url: "setting.check",
-                            data: {ip_check: $('#ip_server_fr').val()},
-                            dataType: 'json',
-                            beforeSend: function () {
-                            $('#spinner-div').show();
-                            },
-                            success: function (msg) {
-                            $('#spinner-div').hide();
-                            if (msg.status == 'success') {
-                            alert("Check Completed. System success to connect FR API.");
-                            } else {
-                            alert('Check Completed. System fail to connect FR API')
-                            }
-                            }
-                    })
                     }
-                    })
-                            })
+            })
+            }
+            })
+            })
 
 // $("#date_radio_button").click(function (e) { 
 //     e.preventDefault();

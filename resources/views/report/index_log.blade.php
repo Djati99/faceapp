@@ -63,7 +63,7 @@
                                 <span class="selected"></span>
                                 <span class="arrow "></span>
                             </a>                                    
-                        </li>                        
+                        </li>
                         <li class="nav-item">
                             <a href="{{ route('sendsapindex') }}" class="nav-link">
                                 <i class="fa fa-chart-bar"></i>
@@ -137,23 +137,21 @@
                                                                 </div>-->
                                 <div class="portlet-body">
                                     <div class="table">
-                                        <div id="fr_table_wrapper" class="dataTables_wrapper no-footer">
+                                        <div id="log_table_wrapper" class="dataTables_wrapper no-footer">
                                             <div class="table-scrollable">
-                                                <table class="table table-bordered table-hover dataTable no-footer dtr-inline" id="fr_table" role="grid" aria-describedby="fr_table_info" style="width: 1014px;">
+                                                <table class="table table-bordered table-hover dataTable no-footer dtr-inline" id="log_table" role="grid" aria-describedby="log_table_info" style="">
                                                     <thead>
                                                         <tr role="row">                                                           
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 104px;" aria-label=" ID"> ID </th>
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px;" aria-label=" Swipe Time"> Swipe Time </th>
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px;" aria-label=" Personnel Code"> Personnel ID </th>
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 34px;" aria-label=" Personnel Name"> Personnel Name </th>
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 49px;" aria-label=" Event Name"> Event Name </th>
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 42px;" aria-label=" Swipping In/Out"> Swipping In/Out </th>
-                                                            <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 49px;" aria-label=" Card Number"> Created </th>
-                                                            <!--<th class="all sorting_disabled" rowspan="1" colspan="1" style="width: 52px;" aria-label=" Action "> Action </th>-->
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Device IP </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Worker Code </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Worker ID </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Alarm Time </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Clock IN/OUT </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Status </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 151px; text-align: center;"> Remark </th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <tr class="odd"><td colspan="9" class="dataTables_empty" valign="top">No data available in table</td></tr>
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -185,23 +183,23 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $('#fr_table').DataTable({
+            $('#log_table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ url('report/data') }}",
+                ajax: "{{ url('log/data') }}",
                 columns: [
-                    {data: 'fa_attendance_id', name: 'id'},
-                    {data: 'swipetime', name: 'swipetime'},
-                    {data: 'personnelcode', name: 'personnelcode'},
-                    {data: 'personnelname', name: 'personnelname'},
-                    {data: 'eventname', name: 'eventname'},
-                    {data: 'swipdirection', name: 'swipdirection'},
-                    {data: 'created_at', name: 'created_at'}
+                    {data: 'devicename', name: 'devicename'},
+                    {data: 'personid', name: 'personid'},
+                    {data: 'firstname', name: 'firstname'},
+                    {data: 'alarmtime', name: 'alarmtime'},
+                    {data: 'accesstype', name: 'accesstype'},
+                    {data: 'sent_cpi', name: 'sent_cpi'},
+                    {data: 'remark', name: 'remark'},
                 ],
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'All'],
-        ],                
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'All'],
+                ],
                 order: [[0, 'desc']]
             });
         });

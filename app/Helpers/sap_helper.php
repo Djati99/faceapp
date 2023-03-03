@@ -57,6 +57,8 @@ function send_time_attendance_to_cpi($data_need_to_delivered_to_cpi, $prfnr, $cl
 //        var_dump($data_need_to_delivered_to_cpi[0]);
 //        $request_body[$cpi_att_f]['PRFNR']= $prfnr;
 //        unset($data_need_to_delivered_to_cpi['PRFNR']);
+//    unset($data_need_to_delivered_to_cpi['RECORD_ID']);
+//    dd($data_need_to_delivered_to_cpi);
     $request_body[$cpi_att_f]['I_SWIPE']["item"] = $data_need_to_delivered_to_cpi;
 //        dd($request_body);
 //    echo json_encode($request_body);
@@ -66,11 +68,12 @@ function send_time_attendance_to_cpi($data_need_to_delivered_to_cpi, $prfnr, $cl
     // $ch = curl_init(config);
     //QA
     //$ch = curl_init("https://l200335-iflmap.hcisbp.ap1.hana.ondemand.com/http/epmsdataflow220");
+//    $json = '{"urn:ZCH_FR_SWIPE_IN":{"I_SWIPE":{"item":[{"PRFNR":"POM SAKILAN","EMPNR":"1SHL\/IOI\/0712\/6910","SOURCE":"D","SDATE":"2023-03-01","STIME":"19:44:14","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":NULL},{"PRFNR":"POM SAKILAN","EMPNR":"1SHL\/IOI\/0418\/6944","SOURCE":"D","SDATE":"2023-03-01","STIME":"19:45:11","TYPE":"O","ERNAM":"","ERDAT":"","ERZET":"","REMARK":"01.0001"}]}}}';
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request_body));
     curl_setopt($ch, CURLOPT_USERPWD, "$cpi_att_u:$cpi_att_p");
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         'Content-Type:application/json;charset=UTF-8',
-        'Accept:text/html',
+//        'Accept:text/html',
 //        'Content-Type: text/html;charset=UTF-8',
 //        'Host:ioics4q88.ioigroup.com'
     ));
@@ -80,17 +83,36 @@ function send_time_attendance_to_cpi($data_need_to_delivered_to_cpi, $prfnr, $cl
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $result = curl_exec($ch);
-    $httpcode = curl_getinfo($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     if ($close_soap) {
         curl_close($ch);
     }
 //    echo ".".json_encode($httpcode)." \n";
 //    dd($httpcode);
 //        dd($result);
+    $response = [];
     if ($httpcode == 200) {
+//$result = '<n0:ZCH_FR_SWIPE_INResponse xmlns:n0="urn:sap-com:document:sap:rfc:functions" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/"><E_SWIPE><item><PRFNR>POM SAKILAN</PRFNR><EMPNR>1PDP/IOI/0219/26160</EMPNR><SOURCE>D</SOURCE><SDATE>2023-01-17</SDATE><STIME>15:56:05</STIME><TYPE>I</TYPE><ERNAM/><ERDAT>0000-00-00</ERDAT><ERZET>00:00:00</ERZET><REMARK>Period available only 02 . 2023</REMARK></item><item><PRFNR>POM SAKILAN</PRFNR><EMPNR>1PDP/IOI/0219/26160</EMPNR><SOURCE>D</SOURCE><SDATE>2023-01-17</SDATE><STIME>15:53:12</STIME><TYPE>O</TYPE><ERNAM/><ERDAT>0000-00-00</ERDAT><ERZET>00:00:00</ERZET><REMARK>Period available only 02 . 2023</REMARK></item></E_SWIPE></n0:ZCH_FR_SWIPE_INResponse>';        
         $data = new SimpleXMLElement($result);
+        $jml_feedback = count($data->E_SWIPE->item);
+        $errors = [];
+        for ($x = 0; $x < $jml_feedback; $x++) {
+            $item = (array) $data->E_SWIPE->item[$x];
+            if (empty($item['REMARK'])) {
+                
+            } else {
+                foreach ($item as $k_item => $v_item) {
+                    $errors['ERROR'][$x][$k_item] = $v_item;
+                }
+                //$errors['ERROR'][$x]['msg'] = (string) $item['REMARK'];
+            }
+        }
+//        dd($errors);
+        $response["feedback"] = $errors;
     } else {
         $data = $result;
+        $response["feedback"] = [];
+//        dd($result);
     }
 //        dd($data);
     $response["data"] = $data;

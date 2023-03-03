@@ -40,7 +40,7 @@ class SendSapController extends BaseController {
         $setting = Setting::orderBy('fa_setting_id', 'desc')->first();
         $this->keep_alive($setting);
         $this->crawling_passing_attendance($request, $setting);
-//        $this->passing_to_cpi($request, $setting);
+        $this->passing_to_cpi($request, $setting);
         echo json_encode(
                 array(
                     'status' => 'success',
@@ -49,9 +49,6 @@ class SendSapController extends BaseController {
                 )
         );
         die();
-//        var_dump(json_encode($setting));
-//        $res = $this->test_conn_with_auth($ip_server);
-//        return redirect()->route('sendsapindex')->with('success', 'Connection succeed.');
     }
 
     public function crawling_passing_attendance($request, $report_setting) {
@@ -97,7 +94,7 @@ class SendSapController extends BaseController {
                                     $direction = "IN";
                                 } else {
                                     $direction = "OUT";
-                                }                                
+                                }
 //                                dd([$dt_att['deviceName'],$report_setting['ip_clock_in']]);
                                 $obj_data = (object) $dt_att;
                                 $this->insert_access($ops_unit, $obj_data, $direction, $now);
@@ -165,9 +162,9 @@ class SendSapController extends BaseController {
             date_default_timezone_set('Asia/Kuala_Lumpur');
         } else {
             date_default_timezone_set('Asia/Jakarta');
-        }        
-        $date_start = \DateTime::createFromFormat('Y-m-d H:i A',"$date_start 01:01 am");
-        $date_end = \DateTime::createFromFormat('Y-m-d H:i A',"$date_end 11:59 pm");
+        }
+        $date_start = \DateTime::createFromFormat('Y-m-d H:i A', "$date_start 01:01 am");
+        $date_end = \DateTime::createFromFormat('Y-m-d H:i A', "$date_end 11:59 pm");
         $timestamp_start = $date_start->format('U');
         $timestamp_end = $date_end->format('U');
 //dd([$timestamp_start,$timestamp_end]);
@@ -240,16 +237,17 @@ class SendSapController extends BaseController {
         }
         return $return;
     }
+
     protected function passing_to_cpi($request, $report_setting) {
         $ops_unit = $report_setting->unit_name;
         $date_start = $request->get('date_start');
         $date_end = $request->get('date_end');
-        
+
         $strdate = "$date_start 00:00:01";
         $enddate = "$date_end 23:59:59";
 //        dd("$strdate $enddate");
         $data = DB::table('fa_accesscontrol')
-                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype','unit_name')
+                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
                 ->where(function ($query) use ($strdate, $enddate) {
                     $query->where('alarmtime', '>=', $strdate);
                     $query->where('alarmtime', '<=', $enddate);
@@ -271,11 +269,11 @@ class SendSapController extends BaseController {
                 'data' => [
                     array(
                         'code' => 200,
-                        'message' => 'OK - data tidak ada'
+                        'message' => 'There is no new data to transfer.'
                     )
                 ]
             );
-            $this->log_event([], $responses, '', 'passing_to_cpi');
+            $this->log_event([], $responses, '', 'passing_to_cpi_button');
         } else {
 //        dd($arr_data);
 
@@ -320,20 +318,49 @@ class SendSapController extends BaseController {
 //            dd($sent_data);
             //sent to cpi
             $prfnr_list = array_keys($sent_data);
-            
+
 //                    $dtsent = $sent_data[$prfnr_list[0]];
 //                    $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], false);
 //                die();
+            $res = [];
+            $error_count = 0;
             if ($prfnr_list > 1) {
                 for ($i = 0; $i < count($prfnr_list) - 1; $i++) {
                     $dtsent = $sent_data[$prfnr_list[$i]];
-                    $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
+                    $response0 = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
+                    if (empty($response0['feedback']['ERROR'])) {
+                        $res[] = $response0;
+                    } else {
+                        $error_count = $error_count + count($response0['feedback']['ERROR']);
+                        $res[] = $response0;
+                        /**
+                         * Handdle error
+                         */
+                    }
                 }
                 $dtsent = $sent_data[$prfnr_list[count($prfnr_list) - 1]];
-                $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
+                $response1 = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
+                if (empty($response1['feedback']['ERROR'])) {
+                    $res[] = $response1;
+                } else {
+                    $error_count = $error_count + count($response1['feedback']['ERROR']);
+                    $res[] = $response1;
+                    /**
+                     * Handdle error
+                     */
+                }
             } else {
                 $dtsent = $sent_data[$prfnr_list[0]];
-                $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
+                $response2 = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
+                if (empty($response2['feedback']['ERROR'])) {
+                    $res[] = $response2;
+                } else {
+                    $error_count = $error_count + count($response2['feedback']['ERROR']);
+                    $res[] = $response2;
+                    /**
+                     * Handdle error
+                     */
+                }
             }
             $responses = array(
                 'status' => 'success',
@@ -344,16 +371,30 @@ class SendSapController extends BaseController {
                     )
                 ]
             );
-
+            if ($error_count > 0) {
+                $responses['status'] = 'fail';
+                $responses['data']['code'] = 200;
+                $pesan = [];
+//                if(empty($res))
+//                foreach($res as $dt_res){
+//                    if (!empty($dt_res['feedback']['ERROR'])) {
+//                        $list_eror = $dt_res['feedback']['ERROR'];
+//                        foreach($list_eror as $dt_eror){
+//                            $pesan[] = "";
+//                        }
+//                    }
+//                }
+                $responses['message'] = $res;
+            }
             //Jangan lupa dibuka
             //update status sent_cpi = 'Y'
 //            dd($updated_ids);
             $affected = DB::table('fa_accesscontrol')
                     ->whereIn('fa_accesscontrol_id', $updated_ids)
                     ->update(['sent_cpi' => 'Y']);
-            $this->log_event([], $responses, '', 'passing_to_cpi');
+            $this->log_event($sent_data, $responses, '', 'passing_to_cpi_button');
         }
-        return 'OK';
+        return $responses;
     }
 
     public function keep_alive($report_setting) {
@@ -527,7 +568,7 @@ class SendSapController extends BaseController {
          * C.1 create Heartbeat every 22 seconds
          */
         $_token = $decoded_res_token2["token"];
-        $zone = config('face.API_ZONE');          
+        $zone = config('face.API_ZONE');
         $_token = date('Ymd') . "|" . date('H:i:s') . "|$_token";
         $now = date('Y-m-d H:i:s');
         $this->log_event([], $_token, $now, 'do-auth');
@@ -557,7 +598,7 @@ class SendSapController extends BaseController {
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 //        dd($httpcode);
         curl_close($ch);
-        $zone = config('face.API_ZONE');           
+        $zone = config('face.API_ZONE');
         $exploded_isi_token[3] = strtotime('now');
         $imploded_isi = implode("|", $exploded_isi_token);
         Storage::disk('local')->put('_token.txt', $imploded_isi);
@@ -582,6 +623,7 @@ class SendSapController extends BaseController {
         $newLog->created_at = $now;
         $newLog->save();
     }
+
     protected function insert_access($ops_unit, $att, $direction, $now) {
         if (AccessControl::where(
                         [

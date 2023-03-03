@@ -88,7 +88,7 @@
                                         <span class="selected"></span>
                                         <span class="arrow "></span>
                                     </a>                                    
-                                </li>                                      
+                                </li>                                 
                                 <li class="nav-item">
                                     <a href="{{ route('sendsapindex') }}" class="nav-link">
                                         <i class="fa fa-chart-bar"></i>
@@ -164,34 +164,16 @@
                                 </div>
                                 <div class="portlet-body">
                                     <div class="table">
-                                        <table class="table table-bordered table-hover" id="att_table">
+                                        <table class="table table-bordered table-hover" id="log_table">
                                             <thead>
                                                 <tr role="row">                                                           
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" width="100px" aria-label=" ID"> Name Of Staff </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" width="70px" aria-label=" work_date"> Work Date </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="2" style="width: 51px; text-align: center;" aria-label="Time"> Time </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="2" style="width: 51px; text-align: center;" aria-label="Time"> Time </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="2" style="width: 51px; text-align: center;" aria-label="Time"> Time </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="2" style="width: 51px; text-align: center;" aria-label="Time"> Time </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="2" style="width: 51px; text-align: center;" aria-label="Time"> Time </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" style="width: 51px;" aria-label="First IN">First IN</th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" style="width: 34px;" aria-label="Last OUT">Last OUT</th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" style="width: 49px;" aria-label="Total Duration">Total Duration</th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" style="width: 49px;" aria-label="Total Rest">Total Rest</th>
-                                                    <th class="all sorting not-export-col" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" style="width: 49px;" aria-label="OT Hours">OT Hours</th>
-                                                    <!--<th class="all sorting_disabled" rowspan="1" colspan="1" style="width: 52px;" aria-label=" Action "> Action </th>-->
-                                                </tr>
-                                                <tr role="row">                                                           
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="IN"> IN </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="OUT"> OUT </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="IN"> IN </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="OUT"> OUT </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="IN"> IN </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="OUT"> OUT </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="IN"> IN </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="OUT"> OUT </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="IN"> IN </th>
-                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 84px;" aria-label="OUT"> OUT </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Device IP </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Worker Code </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Worker ID </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Alarm Time </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Clock IN/OUT </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Status </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 151px; text-align: center;"> Remark </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -257,13 +239,13 @@
             location.reload();
             }
             $(document).ready(function ()
-                    {
-                    $.ajaxSetup({
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                    });
-                    })
+            {
+            $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+            });
+            })
 
                     function printDiv(divID) {
                     //Get the HTML of div
@@ -292,7 +274,7 @@
         <script language="javascript" type="text/javascript">
             var tableAttendance;
             $(document).ready(function () {
-            tableAttendance = $('#att_table').DataTable({
+            tableAttendance = $('#log_table').DataTable({
 //                    processing: true,
             autoFilter: false,
                     language: {
@@ -304,14 +286,14 @@
                     serverSide: true,
                     autoWidth: true,
 //        scrollY:        "300px",
-                            scrollX: true,
-                            scrollCollapse: true,
+                            scrollX: false,
+                            scrollCollapse: false,
 //        fixedColumns: true,
 //                    fixedColumns: {
 //                        leftColumns: 1
 //                    },
                     ajax: {
-                    url: "{{ url('report/data_beautifullify') }}",
+                    url: "{{ url('log/data_beautifullify_log') }}",
                             data: function (d) {
                             d.enddate = $('#enddate').val(),
                                     d.searchbox = $("div.dataTables_filter input").val()
@@ -320,11 +302,6 @@
                             dataType: 'json'
                     },
                     drawCallback: function (settings) {
-//                        console.info('drawCallback')
-//    console.log('table',tableAttendance);
-//    console.log('table',tableAttendance.fixedColumns().left());
-//   console.log(settings.json);
-                    //do whatever  
                     },
 //
                     dom: 'Blfrtip',
@@ -362,38 +339,24 @@
                     },
                     ],
                     columns: [
-                              {data: null, name:'nama_personnel', render: function (data, type, row) {
-//                    console.info('info',data);
-                    return '<div class="form-control1" id="" type="text" style="font-size: 0.75rem;width: 210px;padding: .5rem 0;" >' + data.nama_personnel + '</div>';
-                                    // Combine the first and last names into a single table field
-//                return data.nama_personnel;
-                                }},
-                    {data: 'work_date', name: 'work_date'},
-                    {data: 'time_in_0', name: 'time_in_0'},
-                    {data: 'time_ot_0', name: 'time_ot_0'},
-                    {data: 'time_in_1', name: 'time_in_1'},
-                    {data: 'time_ot_1', name: 'time_ot_1'},
-                    {data: 'time_in_2', name: 'time_in_2'},
-                    {data: 'time_ot_2', name: 'time_ot_2'},
-                    {data: 'time_in_3', name: 'time_in_3'},
-                    {data: 'time_ot_3', name: 'time_ot_3'},
-                    {data: 'time_in_4', name: 'time_in_'},
-                    {data: 'time_ot_4', name: 'time_ot_4'},
-                    {data: 'first_in', name: 'first_in'},
-                    {data: 'last_out', name: 'last_out'},
-                    {data: 'duration', name: 'duration'},
-                    {data: 'total_rest', name: 'total_rest'},
-                    {data: 'ot', name: 'ot'}
+                    {data: 'devicename', name: 'devicename'},
+                    {data: 'personid', name: 'personid'},
+                    {data: 'firstname', name: 'firstname'},
+                    {data: 'alarmtime', name: 'alarmtime'},
+                    {data: 'accesstype', name: 'accesstype'},
+                    {data: 'sent_cpi', name: 'sent_cpi'},
+                    {data: 'remark', name: 'remark'},
                     ],
                     lengthMenu: [
-                         [10, 25, 50, 100, -1],
-                         [10, 25, 50, 100, 'All'],
-                     ],
+                    [10, 25, 50, 100, - 1],
+                    [10, 25, 50, 100, 'All'],
+                    ],
                     order: [[0, 'desc']]
             });
-            $(document).on('click', '.doSearch', function () {
+            $(document).on('click', '.doSearch', function (e) {
+            e.preventDefault();
             var e_date = $('#enddate').val();
-//                    console.info('edate', e_date);
+                    console.info('edate', e_date);
             if (e_date == '') {
             return false;
             }
@@ -419,7 +382,7 @@
             });
             });
         </script>
-        <script src="{{asset('assets/js/report/table.js')}}" type='text/javascript'></script>
+        <script src="{{asset('assets/js/report/table_log.js')}}" type='text/javascript'></script>
         <style>
             .dt-buttons {
                 display: none;

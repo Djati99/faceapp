@@ -134,7 +134,7 @@ class FaceApiController extends BaseController {
                                     $direction = "IN";
                                 } else {
                                     $direction = "OUT";
-                                }                                
+                                }
                                 $obj_data = (object) $dt_att;
                                 $this->insert_access($ops_unit, $obj_data, $direction, $now);
 //                            $this->insert_access_in($obj_data, 'IN', $now);
@@ -574,19 +574,20 @@ class FaceApiController extends BaseController {
         $enddate = $strdate;
 //        $strdate = date('Y-m-d 00:00:01');
 //        $enddate = date('Y-m-d 23:59:59');
-        
 
-//        $strdate = '2023-01-26 00:00:01';
-//        $enddate = '2023-01-26 23:59:59';
+
+//        $strdate = '2023-01-17';
+//        $enddate = '2023-01-26';
         $data = DB::table('fa_accesscontrol')
-                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype','unit_name')
+                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
                 ->where(function ($query) use ($strdate) {
                     $query->whereRaw("to_char(alarmtime::date, 'YYYY-MM-DD') = '$strdate'");
                 })
                 ->where('sent_cpi', '=', 'N')
+//                ->where('sent_cpi', '!=', 'F')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')
-                ->limit(100)
+                ->limit(200)
                 ->get();
         $arr_data = $data->toArray();
         if (!$data || (count($arr_data) < 1)) {
@@ -599,9 +600,9 @@ class FaceApiController extends BaseController {
                     )
                 ]
             );
-            $this->log_event([], $responses, '', 'passing_to_cpi');
+            $this->log_event([], $responses, '', 'passing_to_cpi_oto');
         } else {
-        //dd($arr_data);
+            //dd($arr_data);
 
             $sent_data = [];
             $updated_ids = [];
@@ -610,7 +611,7 @@ class FaceApiController extends BaseController {
             foreach ($arr_data as $dt_attendance) {
                 $updated_ids[] = $dt_attendance->fa_accesscontrol_id;
 //                $att['MANDT'] = '';
-//                $att['PRFNR'] = 'TEST-PRFNR';
+                $att['RECORD_ID'] = $dt_attendance->fa_accesscontrol_id;
                 $att['PRFNR'] = $ops_unit;
                 $att['EMPNR'] = $dt_attendance->firstname;
                 $att['SOURCE'] = "D";
@@ -644,36 +645,98 @@ class FaceApiController extends BaseController {
 //            dd($sent_data);
             //sent to cpi
             $prfnr_list = array_keys($sent_data);
-            if ($prfnr_list > 1) {
+            $res = [];
+            $error_count = [];
+            $delivered_ids = [];
+            if (count($prfnr_list) > 1) {
                 for ($i = 0; $i < count($prfnr_list) - 1; $i++) {
-                    $dtsent = $sent_data[$prfnr_list[$i]];
-                    $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
+                    $dtsent1 = $sent_data[$prfnr_list[$i]];
+                    $dtsent = $dtsent1;
+                    foreach ($dtsent as $ksent => $oksent) {
+                        unset($dtsent[$ksent]['RECORD_ID']);
+                    }
+                    $response0 = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
+                    if (empty($response0['feedback']['ERROR'])) {
+                        $res[] = $response0;
+                        $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                    } else {
+                        $error_count[] = $response0['feedback']['ERROR'];
+                        $res[] = $response0;
+                        /**
+                         * Handdle error
+                         */
+                    }
+//                    echo "$i <br/>";
                 }
-                $dtsent = $sent_data[$prfnr_list[count($prfnr_list) - 1]];
-                $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
+                $dtsent1 = $sent_data[$prfnr_list[count($prfnr_list) - 1]];
+                $dtsent = $dtsent1;
+                foreach ($dtsent as $ksent => $oksent) {
+                    unset($dtsent[$ksent]['RECORD_ID']);
+                }
+                $response1 = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
+                if (empty($response1['feedback']['ERROR'])) {
+                    $res[] = $response1;
+                    $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                } else {
+                    $error_count[] = $response1['feedback']['ERROR'];
+                    $res[] = $response1;
+                    /**
+                     * Handdle error
+                     */
+                }
+                //  dd($response1['feedback']);                
             } else {
-                $dtsent = $sent_data[$prfnr_list[0]];
-                $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
+                $dtsent1 = $sent_data[$prfnr_list[0]];
+//                dd($dtsent1);
+                $dtsent = $dtsent1;
+                foreach ($dtsent as $ksent => $oksent) {
+                    unset($dtsent[$ksent]['RECORD_ID']);
+                }
+                $response2 = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
+                if (empty($response2['feedback']['ERROR'])) {
+                    foreach ($dtsent1 as $oksent) {
+                        $delivered_ids[] = $oksent['RECORD_ID'];
+                    }
+                    $res[] = $response2;
+                } else {
+                    $error_count[] = $response2['feedback']['ERROR'];
+                    $res[] = $response2;
+                    /**
+                     * Handdle error
+                     */
+                }
+                //   dd($response2['feedback']);                
             }
+
+
             $responses = array(
                 'status' => 'success',
                 'data' => [
                     array(
                         'code' => 200,
-                        'message' => 'OK - Data transferred'
+                        'message' => 'OK - Data transferred',
+                        'original' => $res
                     )
                 ]
             );
-
-            //Jangan lupa dibuka
-            //update status sent_cpi = 'Y'
-//            dd($updated_ids);
             $affected = DB::table('fa_accesscontrol')
                     ->whereIn('fa_accesscontrol_id', $updated_ids)
                     ->update(['sent_cpi' => 'Y']);
-            $this->log_event([$strdate,$enddate], $responses, '', 'passing_to_cpi');
+            $this->log_event($sent_data, $responses, '', 'passing_to_cpi_oto');
+            if (count($error_count) > 0) {
+                $responses['status'] = 'fail';
+                foreach ($error_count as $err) {
+                    foreach ($err as $derr) {
+                        $affected = DB::table('fa_accesscontrol')
+                                ->where('firstname', $derr['EMPNR'])
+                                ->where('alarmtime', "$derr[SDATE] $derr[STIME]")
+                                ->update(['sent_cpi' => 'F','remark' => $derr['REMARK']]);
+                    }
+                }
+                $this->log_event($sent_data, $responses, '', 'passing_to_cpi_oto');
+            }
         }
-        return 'OK';
+        return $responses;
     }
 
     protected function passing_to_cpi_ori(Request $request) {
