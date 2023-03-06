@@ -1,12 +1,12 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>FR Time Attendance</title>
+        <title>Log Fail Data</title>
+        <meta name="csrf-token" content="{{ csrf_token() }}">        
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta content="width=device-width, initial-scale=1" name="viewport" />
         <meta name="robots" content="noindex,nofollow">
         <meta content="" name="author" />
-        <base href="http://facemware.test/">
         <link rel="shortcut icon" href="{{asset('assets/img/ioi_icon.png')}}" />
 
         <link href="{{asset('vendor/font-awesome-old/css/font-awesome.min.css')}}" rel="stylesheet" type="text/css" />
@@ -33,6 +33,39 @@
         <link href="{{asset('vendor/template_assets/layouts/layout4/css/themes/default.min.css')}}" rel="stylesheet" type="text/css" id="style_color" />
         <link href="{{asset('vendor/template_assets/layouts/layout4/css/custom.min.css')}}" rel="stylesheet" type="text/css" />
         <link rel="shortcut icon" type="image/png" href="{{asset('assets/img/ioi_icon.png')}}"/>
+     <style>
+            #spinner-div {
+                position: fixed;
+                display: none;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                text-align: center;
+                background-color: rgba(255, 255, 255, 0.8);
+                z-index: 2;
+            }
+            .spinner-border {
+                margin-top:25%;
+                display: inline-block;
+                width: 2rem;
+                height: 2rem;
+                vertical-align: -.125em;
+                border: .25em solid currentColor;
+                border-right-color: transparent;
+                border-radius: 50%;
+                /*                -webkit-animation: .75s linear infinite spinner-border;
+                                animation: .75s linear infinite spinner-border;*/
+
+                -webkit-animation-name: drive;
+                -webkit-animation-duration: 2s;
+                -webkit-animation-timing-function: ease-in;
+                -webkit-animation-iteration-count: 1;
+            }
+            .pt-5 {
+                padding-top: 3rem !important;
+            }
+        </style>         
     </head>
     <body class="page-container-bg-solid page-header-fixed page-sidebar-closed-hide-logo" onafterprint="myFunction()">
         <div class="page-header navbar navbar-fixed-top">
@@ -106,7 +139,7 @@
                 <div class="page-content">
                     <div class="page-head">
                         <div class="page-title">
-                            <h1>Report Time Attendance</h1>
+                            <h1>Log Fail Data</h1>
                         </div>
                     </div>
                     <ul class="page-breadcrumb breadcrumb">
@@ -153,12 +186,13 @@
                             <div class="portlet light bordered">
                                 <div class="portlet-title">
                                     <div class="caption">
-                                        <span class="caption-subject font-blue sbold uppercase blue">Time Attendance</span>
+                                        <span class="caption-subject font-blue sbold uppercase blue">Log Fail Data</span>
                                     </div>
                                     <div class="actions">
                                         <div class="btn-group btn-group-devided" >
                                             <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="2" id="export_transaction_btn"><i class="fa fa-download" ></i> Excel</button>
                                             <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="3" id="export_transaction_btn"><i class="fa fa-download" ></i> PDF</button>
+                                            <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="99" id="export_transaction_btn"><i class="fa fa-send" ></i> Resend</button>
                                         </div>
                                     </div>
                                 </div>
@@ -195,6 +229,10 @@
                 <i class="icon-arrow-up"></i>
             </div>
         </div>
+        <div id="spinner-div" class="pt-5">
+            <div class="spinner-border text-primary" role="status">
+            </div>
+        </div>        
         <div class="quick-nav-overlay"></div>
 
         <script src="{{asset('vendor/template_assets/global/plugins/jquery.min.js')}}" type="text/javascript"></script>
@@ -261,12 +299,6 @@
                     //Restore orignal HTML
                     document.body.innerHTML = oldPage;
                     }
-// var printEvent = window.matchMedia('print');
-// printEvent.addListener(function(printEnd) {
-//     if (!printEnd.matches) {
-//         location.reload();
-//     };
-// });
 
 
 
@@ -356,7 +388,7 @@
             $(document).on('click', '.doSearch', function (e) {
             e.preventDefault();
             var e_date = $('#enddate').val();
-                    console.info('edate', e_date);
+            console.info('edate', e_date);
             if (e_date == '') {
             return false;
             }
@@ -372,6 +404,25 @@
             tableAttendance.button('.buttons-pdf').trigger();
             } else if (tipe == 4) {
             tableAttendance.button('.buttons-print').trigger();
+            } else if (tipe == 99) {
+                $.ajax({
+                    method: "POST",
+                    url: "sendsap.transfer",
+                    data: {type: 'resend'},
+                    dataType: 'json',
+                    beforeSend: function () {
+                        $('#spinner-div').show();
+                    },
+                    success: function (msg) {
+                        $('#spinner-div').hide();
+                        if (msg.status == 'success') {
+                            alert("Transfer completed.");
+                        } else {
+                            var txt = 'Transfer Completed.' + msg.message
+                            alert(txt)
+                        }
+                    }
+                })
             }
             });
             $("div.dataTables_filter input").unbind();
