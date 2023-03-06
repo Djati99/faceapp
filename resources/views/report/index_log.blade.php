@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Time Attendance Report</title>
+        <title>Log Fail Data</title>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <link  href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -12,6 +12,38 @@
         <link href="{{asset('assets/css/themes/default.min.css')}}" rel="stylesheet" type="text/css" id="style_color" />        
         <link href="{{asset('assets/css/custom.min.css')}}" rel="stylesheet" type="text/css" />
         <link rel="shortcut icon" type="image/png" href="{{asset('assets/img/ioi_icon.png')}}"/>
+        <style>
+            #spinner-div {
+                position: fixed;
+                display: none;
+                width: 100%;
+                height: 100%;
+                top: 50%;
+                left: 0;
+                text-align: center;
+                background-color: rgba(255, 255, 255, 0.8);
+                z-index: 2;
+            }
+            .spinner-border {
+                display: inline-block;
+                width: 2rem;
+                height: 2rem;
+                vertical-align: -.125em;
+                border: .25em solid currentColor;
+                border-right-color: transparent;
+                border-radius: 50%;
+                /*                -webkit-animation: .75s linear infinite spinner-border;
+                                animation: .75s linear infinite spinner-border;*/
+
+                -webkit-animation-name: drive;
+                -webkit-animation-duration: 2s;
+                -webkit-animation-timing-function: ease-in;
+                -webkit-animation-iteration-count: 1;
+            }
+            .pt-5 {
+                padding-top: 3rem !important;
+            }
+        </style>         
     </head>
     <body class="page-container-bg-solid page-header-fixed page-sidebar-closed-hide-logo" onafterprint="myFunction()">
         <div class="page-header navbar navbar-fixed-top">
@@ -80,7 +112,7 @@
                 <div class="page-content" style="min-height: 485px; ">
                     <div class="page-head">
                         <div class="page-title">
-                            <h1>Time Attendance Report</h1>
+                            <h1>Log Fail Data</h1>
                         </div>
                     </div>
                     <!--                    <ul class="page-breadcrumb breadcrumb">
@@ -170,6 +202,10 @@
             </div>
             <div class="scroll-to-top" style="display: block;">
                 <i class="icon-arrow-up"></i>
+            </div>
+        </div>
+        <div id="spinner-div" class="pt-5">
+            <div class="spinner-border text-primary" role="status">
             </div>
         </div>        
     </body>

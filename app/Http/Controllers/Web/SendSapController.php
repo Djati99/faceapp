@@ -29,8 +29,6 @@ class SendSapController extends BaseController {
     }
 
     public function transfer_sap(Request $request) {
-
-//        date_default_timezone_set('GMT');
         $zone = config('face.API_ZONE');
         if ($zone == 'MY') {
             date_default_timezone_set('Asia/Kuala_Lumpur');
@@ -38,9 +36,15 @@ class SendSapController extends BaseController {
             date_default_timezone_set('Asia/Jakarta');
         }
         $setting = Setting::orderBy('fa_setting_id', 'desc')->first();
+        
+        if(!empty($request->type) && $request->type == 'resend'){
+        $this->keep_alive($setting);
+        $this->resend_to_cpi($request, $setting);
+        }else{
         $this->keep_alive($setting);
         $this->crawling_passing_attendance($request, $setting);
         $this->passing_to_cpi($request, $setting);
+        }
         echo json_encode(
                 array(
                     'status' => 'success',
@@ -238,31 +242,21 @@ class SendSapController extends BaseController {
         return $return;
     }
 
-    protected function passing_to_cpi($request, $report_setting) {
+    protected function resend_to_cpi($request, $report_setting) {
         $ops_unit = $report_setting->unit_name;
-        $date_start = $request->get('date_start');
-        $date_end = $request->get('date_end');
-
-        $strdate = "$date_start 00:00:01";
-        $enddate = "$date_end 23:59:59";
-//        dd("$strdate $enddate");
+ 
         $data = DB::table('fa_accesscontrol')
                 ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
-                ->where(function ($query) use ($strdate, $enddate) {
-                    $query->where('alarmtime', '>=', $strdate);
-                    $query->where('alarmtime', '<=', $enddate);
-                })
-                ->where('sent_cpi', '=', 'N')
+//                ->where(function ($query) use ($strdate, $enddate) {
+//                    $query->where('alarmtime', '>=', $strdate);
+//                    $query->where('alarmtime', '<=', $enddate);
+//                })
+                ->where('sent_cpi', '=', 'F')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')
-                ->limit(100)
+                ->limit(200)
                 ->get();
         $arr_data = $data->toArray();
-//        
-//        $strdata = '[{"fa_accesscontrol_id":1525,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"SUPRIADI","firstname":"1SHL\/IOI\/0412\/6983","lastname":"","alarmtime":"2023-01-29 00:00:20","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1524,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MUHAMMADAKMALMANDONG","firstname":"1SHL\/IOI\/0811\/6951","lastname":"","alarmtime":"2023-01-29 00:00:31","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1523,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"SIBATANTILI","firstname":"1SHL\/IOI\/0822\/35295","lastname":"","alarmtime":"2023-01-29 00:50:50","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1522,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"IDRUSHAFID","firstname":"1SHL\/IOI\/0113\/6914","lastname":"","alarmtime":"2023-01-29 00:53:49","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1521,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"BAHARIBINBADDU","firstname":"1SHL\/IOI\/0409\/6899","lastname":"","alarmtime":"2023-01-29 00:55:36","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1520,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"RAHMATBINSAMSUL","firstname":"1SHL\/IOI\/0417\/6971","lastname":"","alarmtime":"2023-01-29 00:59:12","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1519,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MUHAMMADRISALBINDARWIS","firstname":"1SHL\/IOI\/0715\/6953","lastname":"","alarmtime":"2023-01-29 01:01:33","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1518,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MOHAMMADASRULBINAMIR","firstname":"1SHL\/IOI\/0117\/6936","lastname":"","alarmtime":"2023-01-29 01:02:36","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1517,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MOHAMADHAKEMANBINUNDDIN","firstname":"1SHL\/IOI\/1218\/6935","lastname":"","alarmtime":"2023-01-29 01:03:30","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1516,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MOHDSYAHEFFENDI","firstname":"1SHL\/IOI\/0817\/6948","lastname":"","alarmtime":"2023-01-29 01:04:09","accesstype":"IN","unit_name":"POM SAKILAN"}]';
-//        $arr_data = json_decode($strdata);
-//        $data = "ok";
-//        dd($arr_data);
         if (!$data || (count($arr_data) < 1)) {
             $responses = array(
                 'status' => 'success',
@@ -275,7 +269,7 @@ class SendSapController extends BaseController {
             );
             $this->log_event([], $responses, '', 'passing_to_cpi_button');
         } else {
-//        dd($arr_data);
+            //dd($arr_data);
 
             $sent_data = [];
             $updated_ids = [];
@@ -284,7 +278,7 @@ class SendSapController extends BaseController {
             foreach ($arr_data as $dt_attendance) {
                 $updated_ids[] = $dt_attendance->fa_accesscontrol_id;
 //                $att['MANDT'] = '';
-//                $att['PRFNR'] = 'TEST-PRFNR';
+                $att['RECORD_ID'] = $dt_attendance->fa_accesscontrol_id;
                 $att['PRFNR'] = $ops_unit;
                 $att['EMPNR'] = $dt_attendance->firstname;
                 $att['SOURCE'] = "D";
@@ -318,81 +312,269 @@ class SendSapController extends BaseController {
 //            dd($sent_data);
             //sent to cpi
             $prfnr_list = array_keys($sent_data);
-
-//                    $dtsent = $sent_data[$prfnr_list[0]];
-//                    $res = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], false);
-//                die();
             $res = [];
-            $error_count = 0;
-            if ($prfnr_list > 1) {
+            $error_count = [];
+            $delivered_ids = [];
+            if (count($prfnr_list) > 1) {
                 for ($i = 0; $i < count($prfnr_list) - 1; $i++) {
-                    $dtsent = $sent_data[$prfnr_list[$i]];
+                    $dtsent1 = $sent_data[$prfnr_list[$i]];
+                    $dtsent = $dtsent1;
+                    foreach ($dtsent as $ksent => $oksent) {
+                        unset($dtsent[$ksent]['RECORD_ID']);
+                    }
                     $response0 = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
                     if (empty($response0['feedback']['ERROR'])) {
                         $res[] = $response0;
+                        $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
                     } else {
-                        $error_count = $error_count + count($response0['feedback']['ERROR']);
+                        $error_count[] = $response0['feedback']['ERROR'];
                         $res[] = $response0;
                         /**
                          * Handdle error
                          */
                     }
+//                    echo "$i <br/>";
                 }
-                $dtsent = $sent_data[$prfnr_list[count($prfnr_list) - 1]];
+                $dtsent1 = $sent_data[$prfnr_list[count($prfnr_list) - 1]];
+                $dtsent = $dtsent1;
+                foreach ($dtsent as $ksent => $oksent) {
+                    unset($dtsent[$ksent]['RECORD_ID']);
+                }
                 $response1 = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
                 if (empty($response1['feedback']['ERROR'])) {
                     $res[] = $response1;
+                    $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
                 } else {
-                    $error_count = $error_count + count($response1['feedback']['ERROR']);
+                    $error_count[] = $response1['feedback']['ERROR'];
                     $res[] = $response1;
                     /**
                      * Handdle error
                      */
                 }
+                //  dd($response1['feedback']);                
             } else {
-                $dtsent = $sent_data[$prfnr_list[0]];
+                $dtsent1 = $sent_data[$prfnr_list[0]];
+//                dd($dtsent1);
+                $dtsent = $dtsent1;
+                foreach ($dtsent as $ksent => $oksent) {
+                    unset($dtsent[$ksent]['RECORD_ID']);
+                }
                 $response2 = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
                 if (empty($response2['feedback']['ERROR'])) {
+                    foreach ($dtsent1 as $oksent) {
+                        $delivered_ids[] = $oksent['RECORD_ID'];
+                    }
                     $res[] = $response2;
                 } else {
-                    $error_count = $error_count + count($response2['feedback']['ERROR']);
+                    $error_count[] = $response2['feedback']['ERROR'];
                     $res[] = $response2;
                     /**
                      * Handdle error
                      */
                 }
+                //   dd($response2['feedback']);                
             }
+
+
             $responses = array(
                 'status' => 'success',
                 'data' => [
                     array(
                         'code' => 200,
-                        'message' => 'OK - Data transferred'
+                        'message' => 'OK - Data transferred',
+                        'original' => $res
                     )
                 ]
             );
-            if ($error_count > 0) {
+            $affected = DB::table('fa_accesscontrol')
+                    ->whereIn('fa_accesscontrol_id', $updated_ids)
+                    ->update(['sent_cpi' => 'Y','remark' =>'']);
+            $this->log_event($sent_data, $responses, '', 'passing_to_cpi_oto');
+            if (count($error_count) > 0) {
                 $responses['status'] = 'fail';
-                $responses['data']['code'] = 200;
-                $pesan = [];
-//                if(empty($res))
-//                foreach($res as $dt_res){
-//                    if (!empty($dt_res['feedback']['ERROR'])) {
-//                        $list_eror = $dt_res['feedback']['ERROR'];
-//                        foreach($list_eror as $dt_eror){
-//                            $pesan[] = "";
-//                        }
-//                    }
-//                }
-                $responses['message'] = $res;
+                foreach ($error_count as $err) {
+                    foreach ($err as $derr) {
+                        $affected = DB::table('fa_accesscontrol')
+                                ->where('firstname', $derr['EMPNR'])
+                                ->where('alarmtime', "$derr[SDATE] $derr[STIME]")
+                                ->update(['sent_cpi' => 'F','remark' => $derr['REMARK']]);
+                    }
+                }
+                $this->log_event($sent_data, $responses, '', 'resend_to_cpi_button');
             }
-            //Jangan lupa dibuka
-            //update status sent_cpi = 'Y'
-//            dd($updated_ids);
+        }
+        return $responses;
+    }
+    protected function passing_to_cpi($request, $report_setting) {
+        $ops_unit = $report_setting->unit_name;
+        $date_start = $request->get('date_start');
+        $date_end = $request->get('date_end');
+
+        $strdate = "$date_start 00:00:01";
+        $enddate = "$date_end 23:59:59";
+//        dd("$strdate $enddate");
+        $data = DB::table('fa_accesscontrol')
+                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
+                ->where(function ($query) use ($strdate, $enddate) {
+                    $query->where('alarmtime', '>=', $strdate);
+                    $query->where('alarmtime', '<=', $enddate);
+                })
+                ->where('sent_cpi', '=', 'N')
+                ->offset(0)
+                ->orderBy('alarmtime', 'asc')
+                ->limit(200)
+                ->get();
+        $arr_data = $data->toArray();
+//        
+//        $strdata = '[{"fa_accesscontrol_id":1525,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"SUPRIADI","firstname":"1SHL\/IOI\/0412\/6983","lastname":"","alarmtime":"2023-01-29 00:00:20","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1524,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MUHAMMADAKMALMANDONG","firstname":"1SHL\/IOI\/0811\/6951","lastname":"","alarmtime":"2023-01-29 00:00:31","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1523,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"SIBATANTILI","firstname":"1SHL\/IOI\/0822\/35295","lastname":"","alarmtime":"2023-01-29 00:50:50","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1522,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"IDRUSHAFID","firstname":"1SHL\/IOI\/0113\/6914","lastname":"","alarmtime":"2023-01-29 00:53:49","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1521,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"BAHARIBINBADDU","firstname":"1SHL\/IOI\/0409\/6899","lastname":"","alarmtime":"2023-01-29 00:55:36","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1520,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"RAHMATBINSAMSUL","firstname":"1SHL\/IOI\/0417\/6971","lastname":"","alarmtime":"2023-01-29 00:59:12","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1519,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MUHAMMADRISALBINDARWIS","firstname":"1SHL\/IOI\/0715\/6953","lastname":"","alarmtime":"2023-01-29 01:01:33","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1518,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MOHAMMADASRULBINAMIR","firstname":"1SHL\/IOI\/0117\/6936","lastname":"","alarmtime":"2023-01-29 01:02:36","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1517,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MOHAMADHAKEMANBINUNDDIN","firstname":"1SHL\/IOI\/1218\/6935","lastname":"","alarmtime":"2023-01-29 01:03:30","accesstype":"IN","unit_name":"POM SAKILAN"},{"fa_accesscontrol_id":1516,"devicecode":"1000003","devicename":"10.10.126.23","channelid":"1000003$7$0$0","channelname":"Door1","alarmtypeid":"600005","personid":"MOHDSYAHEFFENDI","firstname":"1SHL\/IOI\/0817\/6948","lastname":"","alarmtime":"2023-01-29 01:04:09","accesstype":"IN","unit_name":"POM SAKILAN"}]';
+//        $arr_data = json_decode($strdata);
+//        $data = "ok";
+//        dd($arr_data);
+        if (!$data || (count($arr_data) < 1)) {
+            $responses = array(
+                'status' => 'success',
+                'data' => [
+                    array(
+                        'code' => 200,
+                        'message' => 'There is no new data to transfer.'
+                    )
+                ]
+            );
+            $this->log_event([], $responses, '', 'passing_to_cpi_button');
+        } else {
+            //dd($arr_data);
+
+            $sent_data = [];
+            $updated_ids = [];
+
+            $list_prfnr = [];
+            foreach ($arr_data as $dt_attendance) {
+                $updated_ids[] = $dt_attendance->fa_accesscontrol_id;
+//                $att['MANDT'] = '';
+                $att['RECORD_ID'] = $dt_attendance->fa_accesscontrol_id;
+                $att['PRFNR'] = $ops_unit;
+                $att['EMPNR'] = $dt_attendance->firstname;
+                $att['SOURCE'] = "D";
+//                            }
+                $att_time = explode(" ", $dt_attendance->alarmtime);
+//                $att['SDATE'] = str_replace("-","",$att_time[0]);
+                $att['SDATE'] = $att_time[0];
+//                $att['STIME'] = str_replace(":","",$att_time[1]);
+                $att['STIME'] = $att_time[1];
+
+                if ($dt_attendance->accesstype == "OUT") {
+                    $att['TYPE'] = "O";
+                } else {
+                    $att['TYPE'] = "I";
+                }
+                $att['ERNAM'] = "";
+                $att['ERDAT'] = "";
+                $att['ERZET'] = "";
+                $att['REMARK'] = "";
+//                $att['AENAM'] = "";
+//                $att['AEDAT'] = "";
+//                $att['AEZET'] = "";
+//                $att['APNAM'] = "";
+//                $att['APDAT'] = "";
+//                $att['APZET'] = "";
+//                $att['DELETED'] = "";
+
+                $sent_data[$att['PRFNR']][] = $att;
+            }
+
+//            dd($sent_data);
+            //sent to cpi
+            $prfnr_list = array_keys($sent_data);
+            $res = [];
+            $error_count = [];
+            $delivered_ids = [];
+            if (count($prfnr_list) > 1) {
+                for ($i = 0; $i < count($prfnr_list) - 1; $i++) {
+                    $dtsent1 = $sent_data[$prfnr_list[$i]];
+                    $dtsent = $dtsent1;
+                    foreach ($dtsent as $ksent => $oksent) {
+                        unset($dtsent[$ksent]['RECORD_ID']);
+                    }
+                    $response0 = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
+                    if (empty($response0['feedback']['ERROR'])) {
+                        $res[] = $response0;
+                        $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                    } else {
+                        $error_count[] = $response0['feedback']['ERROR'];
+                        $res[] = $response0;
+                        /**
+                         * Handdle error
+                         */
+                    }
+//                    echo "$i <br/>";
+                }
+                $dtsent1 = $sent_data[$prfnr_list[count($prfnr_list) - 1]];
+                $dtsent = $dtsent1;
+                foreach ($dtsent as $ksent => $oksent) {
+                    unset($dtsent[$ksent]['RECORD_ID']);
+                }
+                $response1 = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
+                if (empty($response1['feedback']['ERROR'])) {
+                    $res[] = $response1;
+                    $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                } else {
+                    $error_count[] = $response1['feedback']['ERROR'];
+                    $res[] = $response1;
+                    /**
+                     * Handdle error
+                     */
+                }
+                //  dd($response1['feedback']);                
+            } else {
+                $dtsent1 = $sent_data[$prfnr_list[0]];
+//                dd($dtsent1);
+                $dtsent = $dtsent1;
+                foreach ($dtsent as $ksent => $oksent) {
+                    unset($dtsent[$ksent]['RECORD_ID']);
+                }
+                $response2 = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
+                if (empty($response2['feedback']['ERROR'])) {
+                    foreach ($dtsent1 as $oksent) {
+                        $delivered_ids[] = $oksent['RECORD_ID'];
+                    }
+                    $res[] = $response2;
+                } else {
+                    $error_count[] = $response2['feedback']['ERROR'];
+                    $res[] = $response2;
+                    /**
+                     * Handdle error
+                     */
+                }
+                //   dd($response2['feedback']);                
+            }
+
+
+            $responses = array(
+                'status' => 'success',
+                'data' => [
+                    array(
+                        'code' => 200,
+                        'message' => 'OK - Data transferred',
+                        'original' => $res
+                    )
+                ]
+            );
             $affected = DB::table('fa_accesscontrol')
                     ->whereIn('fa_accesscontrol_id', $updated_ids)
                     ->update(['sent_cpi' => 'Y']);
-            $this->log_event($sent_data, $responses, '', 'passing_to_cpi_button');
+            $this->log_event($sent_data, $responses, '', 'passing_to_cpi_oto');
+            if (count($error_count) > 0) {
+                $responses['status'] = 'fail';
+                foreach ($error_count as $err) {
+                    foreach ($err as $derr) {
+                        $affected = DB::table('fa_accesscontrol')
+                                ->where('firstname', $derr['EMPNR'])
+                                ->where('alarmtime', "$derr[SDATE] $derr[STIME]")
+                                ->update(['sent_cpi' => 'F','remark' => $derr['REMARK']]);
+                    }
+                }
+                $this->log_event($sent_data, $responses, '', 'passing_to_cpi_button');
+            }
         }
         return $responses;
     }

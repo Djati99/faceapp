@@ -181,7 +181,6 @@ class LogController extends BaseController {
 //                    ->whereRaw($w_personid)
                         ->get();
             }
-//            dd([$strdate, $enddate, $w_personid]);
 
             $arr_data = $data->toArray();
 //            dd($arr_data);
