@@ -191,8 +191,7 @@
                                     <div class="actions">
                                         <div class="btn-group btn-group-devided" >
                                             <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="2" id="export_transaction_btn"><i class="fa fa-download" ></i> Excel</button>
-                                            <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="3" id="export_transaction_btn"><i class="fa fa-download" ></i> PDF</button>
-                                            <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="99" id="export_transaction_btn"><i class="fa fa-send" ></i> Resend</button>
+                                            <button type="button" class="btn btn-outline btn-circle btn-sm blue" data-type="99" id="export_transaction_btn"><i class="fa fa-send" ></i> Resend Failed Data</button>
                                         </div>
                                     </div>
                                 </div>
@@ -354,15 +353,6 @@
                             }
                     },
                     {
-                    text: 'pdf',
-                            extend: 'pdfHtml5',
-                                            orientation: 'landscape',
-                                            pageSize: 'LEGAL',
-                            exportOptions: {
-                            columns: ':visible:not(.not-export-col)'
-                            }
-                    },
-                    {
                     text: 'print',
                             extend: 'print',
                             exportOptions: {
@@ -376,7 +366,16 @@
                     {data: 'firstname', name: 'firstname'},
                     {data: 'alarmtime', name: 'alarmtime'},
                     {data: 'accesstype', name: 'accesstype'},
-                    {data: 'sent_cpi', name: 'sent_cpi'},
+//                    {data: 'sent_cpi', name: 'sent_cpi'},
+                              {data: null, name:'sent_cpi', render: function (data, type, row) {
+                            console.info('data',data,data.sent_cpi);
+                            var stts = 'Failed';
+                            if(data.sent_cpi == 'Y'){
+                                stts = 'Success';
+                            }
+                            return stts;
+//                    return '<div class="form-control1" id="" type="text" style="font-size: 0.75rem;width: 210px;padding: .5rem 0;" >' + data.nama_personnel + '</div>';
+                                }},                    
                     {data: 'remark', name: 'remark'},
                     ],
                     lengthMenu: [
@@ -401,8 +400,6 @@
             } else if (tipe == 2) {
             tableAttendance.button('.buttons-excel').trigger();
             } else if (tipe == 3) {
-            tableAttendance.button('.buttons-pdf').trigger();
-            } else if (tipe == 4) {
             tableAttendance.button('.buttons-print').trigger();
             } else if (tipe == 99) {
                 $.ajax({

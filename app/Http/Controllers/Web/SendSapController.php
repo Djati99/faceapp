@@ -206,6 +206,7 @@ class SendSapController extends BaseController {
         $result = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+//dd($result);
 //        dd([$report_setting,$report]);
         if ($httpcode == 200) {
             $return['status'] = 1;
