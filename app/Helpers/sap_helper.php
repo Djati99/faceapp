@@ -68,7 +68,8 @@ function send_time_attendance_to_cpi($data_need_to_delivered_to_cpi, $prfnr, $cl
     // $ch = curl_init(config);
     //QA
     //$ch = curl_init("https://l200335-iflmap.hcisbp.ap1.hana.ondemand.com/http/epmsdataflow220");
-//    $json = '{"urn:ZCH_FR_SWIPE_IN":{"I_SWIPE":{"item":[{"PRFNR":"POM SAKILAN","EMPNR":"1SHL\/IOI\/0712\/6910","SOURCE":"D","SDATE":"2023-03-01","STIME":"19:44:14","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":NULL},{"PRFNR":"POM SAKILAN","EMPNR":"1SHL\/IOI\/0418\/6944","SOURCE":"D","SDATE":"2023-03-01","STIME":"19:45:11","TYPE":"O","ERNAM":"","ERDAT":"","ERZET":"","REMARK":"01.0001"}]}}}';
+    //$json = '{"urn:ZCH_FR_SWIPE_IN":{"I_SWIPE":{"item":[{"PRFNR":"POM SAKILAN","EMPNR":"1SHL\/IOI\/0712\/6910","SOURCE":"D","SDATE":"2023-03-01","STIME":"19:44:14","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":NULL},{"PRFNR":"POM SAKILAN","EMPNR":"1SHL\/IOI\/0418\/6944","SOURCE":"D","SDATE":"2023-03-01","STIME":"19:45:11","TYPE":"O","ERNAM":"","ERDAT":"","ERZET":"","REMARK":"01.0001"}]}}}';
+//    $json = '{"urn:ZCH_FR_SWIPE_IN":{"I_SWIPE":{"item":[{"PRFNR":"POM GOMALI","EMPNR":"1PDP\/IOI\/0219\/26160","SOURCE":"D","SDATE":"2023-01-17","STIME":"15:53:12","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":""},{"PRFNR":"POM GOMALI","EMPNR":"1PDP\/IOI\/0219\/26160","SOURCE":"D","SDATE":"2023-01-17","STIME":"15:55:49","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":""},{"PRFNR":"POM GOMALI","EMPNR":"1PDP\/IOI\/0219\/26160","SOURCE":"D","SDATE":"2023-01-17","STIME":"15:55:53","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":""},{"PRFNR":"POM GOMALI","EMPNR":"1PDP\/IOI\/0219\/26160","SOURCE":"D","SDATE":"2023-01-17","STIME":"15:56:04","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":""},{"PRFNR":"POM GOMALI","EMPNR":"1PDP\/IOI\/0219\/26160","SOURCE":"D","SDATE":"2023-01-17","STIME":"15:56:05","TYPE":"I","ERNAM":"","ERDAT":"","ERZET":"","REMARK":""}]}}}';
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request_body));
     curl_setopt($ch, CURLOPT_USERPWD, "$cpi_att_u:$cpi_att_p");
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -87,7 +88,7 @@ function send_time_attendance_to_cpi($data_need_to_delivered_to_cpi, $prfnr, $cl
     if ($close_soap) {
         curl_close($ch);
     }
-//    echo ".".json_encode($httpcode)." \n";
+//    var_dump($httpcode);echo " \n";
 //    dd($httpcode);
 //        dd($result);
     $response = [];
@@ -109,13 +110,19 @@ function send_time_attendance_to_cpi($data_need_to_delivered_to_cpi, $prfnr, $cl
         }
 //        dd($errors);
         $response["feedback"] = $errors;
+        $response["data"] = $data;
+        $response["status_code"] = $httpcode;
+    } else if ($httpcode == 500) {
+        $response["feedback"] = $result;
+        $response["data"] = [];
+        $response["status_code"] = $httpcode;
     } else {
         $data = $result;
         $response["feedback"] = [];
 //        dd($result);
+        $response["data"] = $data;
+        $response["status_code"] = $httpcode;
     }
 //        dd($data);
-    $response["data"] = $data;
-    $response["status_code"] = $httpcode;
     return $response;
 }

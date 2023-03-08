@@ -41,13 +41,14 @@
                 display: none;
                 width: 100%;
                 height: 100%;
-                top: 50%;
+                top: 0;
                 left: 0;
                 text-align: center;
                 background-color: rgba(255, 255, 255, 0.8);
                 z-index: 2;
             }
             .spinner-border {
+                margin-top:25%;
                 display: inline-block;
                 width: 2rem;
                 height: 2rem;
@@ -200,10 +201,10 @@
                                                             <table>
                                                                 <tbody><tr>
                                                                         <td>
-
+                                                                            <button class="btn btn-primary ml-3" type="button" style="width: 150px;" id="get_dss">Get DSS</button>
                                                                         </td>
                                                                         <td>
-                                                                            <button class="btn btn-primary ml-3" type="button" style="width: 150px;" id="send_sap">Process</button>
+                                                                            <button class="btn btn-primary ml-3" type="button" style="margin-left:15px;width: 150px;" id="send_sap">Sent SAP</button>
                                                                         </td>
                                                                     </tr>
                                                                 </tbody>
@@ -296,12 +297,12 @@
             });
             $('#startdate').datepicker({ format: 'yyyy-mm-dd', autoclose: true, });
             $('#enddate').datepicker({ format: 'yyyy-mm-dd', autoclose: true, });
-            $('#send_sap').click(function () {
+            $('#get_dss').click(function () {
             if (this.value !== 'undefined') {
             $.ajax({
             method: "POST",
                     url: "sendsap.transfer",
-                    data: {date_start: $('#startdate').val(), date_end: $('#enddate').val()},
+                    data: {type: 'pull',date_start: $('#startdate').val(), date_end: $('#enddate').val()},
                     dataType: 'json',
                     beforeSend: function () {
                     $('#spinner-div').show();
@@ -309,7 +310,29 @@
                     success: function (msg) {
                     $('#spinner-div').hide();
                     if (msg.status == 'success') {
-                    alert("Transfer completed. System success to collect data and send data to SAP.");
+                    alert("Get data completed. System success to collect data from DSS server.");
+                    } else {
+                    var txt = 'Transfer Completed.' + msg.message
+                            alert(txt)
+                    }
+                    }
+            })
+            }
+            })
+            $('#send_sap').click(function () {
+            if (this.value !== 'undefined') {
+            $.ajax({
+            method: "POST",
+                    url: "sendsap.transfer",
+                    data: {type: 'push',date_start: $('#startdate').val(), date_end: $('#enddate').val()},
+                    dataType: 'json',
+                    beforeSend: function () {
+                    $('#spinner-div').show();
+                    },
+                    success: function (msg) {
+                    $('#spinner-div').hide();
+                    if (msg.status == 'success') {
+                    alert("Transfer completed. System success send data to SAP.");
                     } else {
                     var txt = 'Transfer Completed.' + msg.message
                             alert(txt)
@@ -320,20 +343,16 @@
             })
             })
 
-// $("#date_radio_button").click(function (e) { 
-//     e.preventDefault();
-//     $("#date_picker").attr("disabled", false);
-// });
-                    $('#date_radio_button').change(function () {
-            if ($("#date_radio_button").is(':checked')) {
-            $('#date_picker').prop("disabled", false);
+            $('#date_radio_button').change(function () {
+                if ($("#date_radio_button").is(':checked')) {
+                $('#date_picker').prop("disabled", false);
             } else {
-            $('#date_picker').prop("disabled", true);
+                $('#date_picker').prop("disabled", true);
             }
 
             });
             $(".disable_on_submit").click(function (e) {
-            $(this).prop('disabled', true);
+                $(this).prop('disabled', true);
             });
             function printDiv(divID) {
             //Get the HTML of div
@@ -349,14 +368,6 @@
             //Restore orignal HTML
             document.body.innerHTML = oldPage;
             }
-// var printEvent = window.matchMedia('print');
-// printEvent.addListener(function(printEnd) {
-//     if (!printEnd.matches) {
-//         location.reload();
-//     };
-// });
-
-
 
         </script>        
     </body>

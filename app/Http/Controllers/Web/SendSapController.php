@@ -36,14 +36,20 @@ class SendSapController extends BaseController {
             date_default_timezone_set('Asia/Jakarta');
         }
         $setting = Setting::orderBy('fa_setting_id', 'desc')->first();
-        
-        if(!empty($request->type) && $request->type == 'resend'){
-        $this->keep_alive($setting);
-        $this->resend_to_cpi($request, $setting);
-        }else{
-        $this->keep_alive($setting);
-        $this->crawling_passing_attendance($request, $setting);
-        $this->passing_to_cpi($request, $setting);
+
+        if (!empty($request->type) && $request->type == 'resend') {
+            $this->keep_alive($setting);
+            $this->resend_to_cpi($request, $setting);
+        }if (!empty($request->type) && $request->type == 'pull') {
+            $this->keep_alive($setting);
+            $this->crawling_passing_attendance($request, $setting);
+        }if (!empty($request->type) && $request->type == 'push') {
+            $this->keep_alive($setting);
+            $this->passing_to_cpi($request, $setting);
+        } else {
+            $this->keep_alive($setting);
+            $this->crawling_passing_attendance($request, $setting);
+            $this->passing_to_cpi($request, $setting);
         }
         echo json_encode(
                 array(
@@ -206,6 +212,7 @@ class SendSapController extends BaseController {
         $result = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+//dd($result);
 //        dd([$report_setting,$report]);
         if ($httpcode == 200) {
             $return['status'] = 1;
@@ -244,7 +251,7 @@ class SendSapController extends BaseController {
 
     protected function resend_to_cpi($request, $report_setting) {
         $ops_unit = $report_setting->unit_name;
- 
+
         $data = DB::table('fa_accesscontrol')
                 ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
 //                ->where(function ($query) use ($strdate, $enddate) {
@@ -388,7 +395,7 @@ class SendSapController extends BaseController {
             );
             $affected = DB::table('fa_accesscontrol')
                     ->whereIn('fa_accesscontrol_id', $updated_ids)
-                    ->update(['sent_cpi' => 'Y','remark' =>'']);
+                    ->update(['sent_cpi' => 'Y', 'remark' => '']);
             $this->log_event($sent_data, $responses, '', 'passing_to_cpi_oto');
             if (count($error_count) > 0) {
                 $responses['status'] = 'fail';
@@ -397,7 +404,7 @@ class SendSapController extends BaseController {
                         $affected = DB::table('fa_accesscontrol')
                                 ->where('firstname', $derr['EMPNR'])
                                 ->where('alarmtime', "$derr[SDATE] $derr[STIME]")
-                                ->update(['sent_cpi' => 'F','remark' => $derr['REMARK']]);
+                                ->update(['sent_cpi' => 'F', 'remark' => $derr['REMARK']]);
                     }
                 }
                 $this->log_event($sent_data, $responses, '', 'resend_to_cpi_button');
@@ -405,6 +412,7 @@ class SendSapController extends BaseController {
         }
         return $responses;
     }
+
     protected function passing_to_cpi($request, $report_setting) {
         $ops_unit = $report_setting->unit_name;
         $date_start = $request->get('date_start');
@@ -570,7 +578,7 @@ class SendSapController extends BaseController {
                         $affected = DB::table('fa_accesscontrol')
                                 ->where('firstname', $derr['EMPNR'])
                                 ->where('alarmtime', "$derr[SDATE] $derr[STIME]")
-                                ->update(['sent_cpi' => 'F','remark' => $derr['REMARK']]);
+                                ->update(['sent_cpi' => 'F', 'remark' => $derr['REMARK']]);
                     }
                 }
                 $this->log_event($sent_data, $responses, '', 'passing_to_cpi_button');
