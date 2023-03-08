@@ -21,13 +21,13 @@ class LogController extends BaseController {
     public function report(Request $request) {
         if ($request->ajax()) {
             $data = AccessControl::latest()->get();
-        $data = DB::table('fa_accesscontrol')
-                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
-                ->whereIn('sent_cpi', ['F','Y'])
+            $data = DB::table('fa_accesscontrol')
+                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
+                    ->whereIn('sent_cpi', ['F', 'Y'])
 //                ->offset(0)
-                ->orderBy('alarmtime', 'asc')
+                    ->orderBy('alarmtime', 'asc')
 //                ->limit(10)
-                ->get();            
+                    ->get();
             return Datatables::of($data)
                             ->make(true);
         }
@@ -37,13 +37,13 @@ class LogController extends BaseController {
 
     public function report_formatted(Request $request) {
         if ($request->ajax()) {
-        $data = DB::table('fa_accesscontrol')
-                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
-                ->whereIn('sent_cpi', ['F','Y'])
-                ->offset(0)
-                ->orderBy('alarmtime', 'asc')
+            $data = DB::table('fa_accesscontrol')
+                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
+                    ->whereIn('sent_cpi', ['F', 'Y'])
+                    ->offset(0)
+                    ->orderBy('alarmtime', 'asc')
 //                ->limit(10)
-                ->get(); 
+                    ->get();
             return Datatables::of($data)
                             ->make(true);
         }
@@ -53,13 +53,13 @@ class LogController extends BaseController {
 
     public function getData_att(Request $request) {
         if ($request->ajax()) {
-        $data = DB::table('fa_accesscontrol')
-                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
-                ->whereIn('sent_cpi', ['F','Y'])
-                ->offset(0)
-                ->orderBy('alarmtime', 'asc')
+            $data = DB::table('fa_accesscontrol')
+                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
+                    ->whereIn('sent_cpi', ['F', 'Y'])
+                    ->offset(0)
+                    ->orderBy('alarmtime', 'asc')
 //                ->limit(10)
-                ->get(); 
+                    ->get();
             return Datatables::of($data)
                             ->make(true);
         }
@@ -68,13 +68,13 @@ class LogController extends BaseController {
 
     public function getData(Request $request) {
         if ($request->ajax()) {
-        $data = DB::table('fa_accesscontrol')
-                ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name', 'sent_cpi')
-                ->whereIn('sent_cpi', ['F','Y'])
-                ->offset(0)
-                ->orderBy('alarmtime', 'asc')
+            $data = DB::table('fa_accesscontrol')
+                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name', 'sent_cpi')
+                    ->whereIn('sent_cpi', ['F', 'Y'])
+                    ->offset(0)
+                    ->orderBy('alarmtime', 'asc')
 //                ->limit(10)
-                ->get(); 
+                    ->get();
             return Datatables::of($data)
                             ->make(true);
         }
@@ -96,6 +96,7 @@ class LogController extends BaseController {
             $setting_sdate = explode(" ", $report_setting->startdate);
             $setting_edate = explode(" ", $report_setting->enddate);
 
+            $status_log = $request->get('status');
             $strdate = $request->get('enddate');
 
             $search_val_all = $request->get('searchbox');
@@ -105,12 +106,16 @@ class LogController extends BaseController {
                 $date_search = \DateTime::createFromFormat('Y-m-d', $search_val_all);
                 if ($date_search) {
                     $strdate = $date_search->format('Y-m-d');
-                    
+
                     $searchwhere = "%$search_val_all%";
                     $data = DB::table('fa_accesscontrol')
-                            ->where(function ($query) use ($strdate, $enddate) {
+                            ->where(function ($query) use ($strdate, $enddate, $status_log) {
                                 $query->whereRaw("to_char(alarmtime,'YYYY-MM-DD') = '$strdate'");
-                                $query->whereIn('sent_cpi', ['F','Y']);
+                                if ($status_log == 'ALL') {
+                                    $query->whereIn('sent_cpi', ['F', 'Y']);
+                                } else {
+                                    $query->where('sent_cpi', '=', $status_log);
+                                }
                             })
                             ->get();
                 } else {
@@ -119,9 +124,13 @@ class LogController extends BaseController {
 //                    dd([$w_personid, $search_val_all]);
                     $searchwhere = "%$search_val_all%";
                     $data = DB::table('fa_accesscontrol')
-                            ->where(function ($query) use ($strdate) {
+                            ->where(function ($query) use ($strdate, $status_log) {
                                 $query->whereRaw("to_char(alarmtime,'YYYY-MM-DD') = '$strdate'");
-                                $query->whereIn('sent_cpi', ['F','Y']);
+                                if ($status_log == 'ALL') {
+                                    $query->whereIn('sent_cpi', ['F', 'Y']);
+                                } else {
+                                    $query->where('sent_cpi', '=', $status_log);
+                                }
                             })
                             ->where(function ($query1) use ($searchwhere) {
                                 $query1->orWhere('personid', 'ilike', $searchwhere);
@@ -131,8 +140,14 @@ class LogController extends BaseController {
                 }
             } else {
                 $data = DB::table('fa_accesscontrol')
+                        ->where(function ($query) use ($status_log) {
+                            if ($status_log == 'ALL') {
+                                $query->whereIn('sent_cpi', ['F', 'Y']);
+                            } else {
+                                $query->where('sent_cpi', '=', $status_log);
+                            }
+                        })
                         ->whereRaw("to_char(alarmtime,'YYYY-MM-DD') = '$strdate'")
-                        ->whereIn('sent_cpi', ['F','Y'])
                         ->get();
             }
 
@@ -149,7 +164,7 @@ class LogController extends BaseController {
                 $result[] = $dt_access;
             }
 
-           
+
             $dttable = Datatables::of($result)->make(true);
             return $dttable;
         }

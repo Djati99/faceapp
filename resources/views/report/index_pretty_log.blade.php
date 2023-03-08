@@ -168,8 +168,16 @@
                                             <div class="col-md-2">
                                                 <div class="input-group date-picker input-daterange" data-date-format="yyyy-mm-dd" data-date-end-date="0d">
                                                     <input class="form-control" name="from" placeholder="From" type="text" id="enddate" value="{{date('Y-m-d')}}" autocomplete="off">
-                                                    <!--<span class="input-group-addon"> to </span>-->
-                                                    <!--<input class="form-control" name="to" placeholder="To" type="text" value="09-12-2022" autocomplete="off">--> 
+                                                </div>
+                                            </div>
+                                            <label class="col-md-1 control-label" style="text-align:left;">Status</label>
+                                            <div class="col-md-2">
+                                                <div class="input-group date-picker input-daterange" data-date-format="yyyy-mm-dd" data-date-end-date="0d">
+                                                    <select class="form-control" id="status" name="status" aria-controls="" class="">
+                                                        <option value="ALL">ALL</option>
+                                                        <option value="Y">Success</option>
+                                                        <option value="F">Failed</option>
+                                                    </select>                                                    
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
@@ -326,8 +334,9 @@
                     ajax: {
                     url: "{{ url('log/data_beautifullify_log') }}",
                             data: function (d) {
-                            d.enddate = $('#enddate').val(),
-                                    d.searchbox = $("div.dataTables_filter input").val()
+                                d.enddate = $('#enddate').val(),
+                                d.status = $('#status').val(),
+                                d.searchbox = $("div.dataTables_filter input").val()
                             },
                             method : 'get',
                             dataType: 'json'
@@ -368,7 +377,6 @@
                     {data: 'accesstype', name: 'accesstype'},
 //                    {data: 'sent_cpi', name: 'sent_cpi'},
                               {data: null, name:'sent_cpi', render: function (data, type, row) {
-                            console.info('data',data,data.sent_cpi);
                             var stts = 'Failed';
                             if(data.sent_cpi == 'Y'){
                                 stts = 'Success';
@@ -385,13 +393,12 @@
                     order: [[0, 'desc']]
             });
             $(document).on('click', '.doSearch', function (e) {
-            e.preventDefault();
-            var e_date = $('#enddate').val();
-            console.info('edate', e_date);
-            if (e_date == '') {
-            return false;
-            }
-            tableAttendance.draw();
+                e.preventDefault();
+                var e_date = $('#enddate').val();
+                if (e_date == '') {
+                return false;
+                }
+                tableAttendance.draw();
             });
             $(document).on('click', '#export_transaction_btn', function (i) {
             var tipe = i.target.dataset.type;
