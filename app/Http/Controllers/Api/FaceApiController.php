@@ -597,7 +597,7 @@ class FaceApiController extends BaseController {
 //        $enddate = date('Y-m-d 23:59:59');
 
 
-        $strdate = '2022-12-07';
+//        $strdate = '2022-12-07';
 //        $enddate = '2023-01-26';
         $data = DB::table('fa_accesscontrol')
                 ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
