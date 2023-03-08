@@ -256,7 +256,7 @@ class FaceApiController extends BaseController {
         }
     }
 
-    protected function log_event($params, $responses, $saveNow = '', $url = '') {
+    protected function log_event($params, $responses, $saveNow = '', $url = '', $sts = "OK") {
         $newLog = new RequestLog();
 
         if (empty($saveNow)) {
@@ -268,7 +268,7 @@ class FaceApiController extends BaseController {
         $newLog->transaction_type = 'ATTENDANCE';
         $newLog->url = $url;
         $newLog->params = json_encode($params);
-        $newLog->response_status = 'OK';
+        $newLog->response_status = $sts;
         $newLog->response_message = json_encode($responses);
         $newLog->created_at = $now;
         $newLog->save();
@@ -298,9 +298,9 @@ class FaceApiController extends BaseController {
             $mundur_setengah_jam = "-30 minutes";
             date_default_timezone_set('Asia/Jakarta');
         }
-	/*
-	get the latest timestamp data successfully pulled from dss
-*/
+        /*
+          get the latest timestamp data successfully pulled from dss
+         */
         $datacek = DB::table('fa_accesscontrol')
                 ->select('fa_accesscontrol_id', 'alarmtime')
                 ->whereRaw('alarmtime is not null')
@@ -308,21 +308,21 @@ class FaceApiController extends BaseController {
                 ->orderBy('alarmtime', 'desc')
                 ->limit(1)
                 ->first();
-		//dd($datacek);
+        //dd($datacek);
         //$arr_data = $datacek->toArray();
-	if($datacek->alarmtime < date('Y-m-d H:i')){
-		$timestamp_start = strtotime($datacek->alarmtime);
-	}else{
-        	$timestamp_start = strtotime(date('Y-m-d H:i:s', strtotime("$mundur_setengah_jam")));
-	}
+        if ($datacek->alarmtime < date('Y-m-d H:i')) {
+            $timestamp_start = strtotime($datacek->alarmtime);
+        } else {
+            $timestamp_start = strtotime(date('Y-m-d H:i:s', strtotime("$mundur_setengah_jam")));
+        }
 
 //	$date_start = date('Y-m-d');
-  //      $date_start = \DateTime::createFromFormat('Y-m-d H:i A', "2023-03-05 00:01 am");
-    //    $timestamp_start = (int)$date_start->format('U');
-	//$timestamp_start = strtotime(date('Y-m-d'). " 00:01:01 PM");
+        //      $date_start = \DateTime::createFromFormat('Y-m-d H:i A', "2023-03-05 00:01 am");
+        //    $timestamp_start = (int)$date_start->format('U');
+        //$timestamp_start = strtotime(date('Y-m-d'). " 00:01:01 PM");
         $timestamp_end = strtotime(date('Y-m-d H:i:s'));
 
-       // dd([$timestamp_start,$timestamp_end]);
+        // dd([$timestamp_start,$timestamp_end]);
 //        $timestamp_start = strtotime ("2023-01-31 00:00:01");
 //        $timestamp_end = strtotime ("2023-01-31 23:59:59");        
         $body_posted = '{
@@ -348,7 +348,7 @@ class FaceApiController extends BaseController {
         $result = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-       // dd([$result]);
+        // dd([$result]);
         if ($httpcode == 200) {
             $return['status'] = 1;
             $parse_result = json_decode($result, 1);
@@ -592,19 +592,19 @@ class FaceApiController extends BaseController {
 
 //        $strdate = "2022-11-23";
         $strdate = date('Y-m-d');
-        $enddate = $strdate;
+//        $enddate = $strdate;
 //        $strdate = date('Y-m-d 00:00:01');
 //        $enddate = date('Y-m-d 23:59:59');
 
 
-//        $strdate = '2023-01-17';
+        $strdate = '2022-12-07';
 //        $enddate = '2023-01-26';
         $data = DB::table('fa_accesscontrol')
                 ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
                 ->where(function ($query) use ($strdate) {
                     $query->whereRaw("to_char(alarmtime::date, 'YYYY-MM-DD') = '$strdate'");
                 })
-                ->where('sent_cpi', '=', 'N')
+                ->whereIn('sent_cpi', ['F', 'N'])
 //                ->where('sent_cpi', '!=', 'F')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')
@@ -677,15 +677,30 @@ class FaceApiController extends BaseController {
                         unset($dtsent[$ksent]['RECORD_ID']);
                     }
                     $response0 = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
-                    if (empty($response0['feedback']['ERROR'])) {
-                        $res[] = $response0;
-                        $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                    if (!empty($response0['status_code']) && $response0['status_code'] == 500) {
+                        $this->log_event($sent_data, $response0['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
+                        $responses = array(
+                            'status' => 'success',
+                            'data' => [
+                                array(
+                                    'code' => 200,
+                                    'message' => 'Fail - data not transfered',
+                                    'original' => $response0['feedback']
+                                )
+                            ]
+                        );
+                        return $responses;
                     } else {
-                        $error_count[] = $response0['feedback']['ERROR'];
-                        $res[] = $response0;
-                        /**
-                         * Handdle error
-                         */
+                        if (empty($response0['feedback']['ERROR'])) {
+                            $res[] = $response0;
+                            $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                        } else {
+                            $error_count[] = $response0['feedback']['ERROR'];
+                            $res[] = $response0;
+                            /**
+                             * Handdle error
+                             */
+                        }
                     }
 //                    echo "$i <br/>";
                 }
@@ -695,15 +710,30 @@ class FaceApiController extends BaseController {
                     unset($dtsent[$ksent]['RECORD_ID']);
                 }
                 $response1 = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
-                if (empty($response1['feedback']['ERROR'])) {
-                    $res[] = $response1;
-                    $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                if (!empty($response1['status_code']) && $response1['status_code'] == 500) {
+                    $this->log_event($sent_data, $response1['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
+                    $responses = array(
+                        'status' => 'success',
+                        'data' => [
+                            array(
+                                'code' => 200,
+                                'message' => 'Fail - data not transfered',
+                                'original' => $response1['feedback']
+                            )
+                        ]
+                    );
+                    return $responses;
                 } else {
-                    $error_count[] = $response1['feedback']['ERROR'];
-                    $res[] = $response1;
-                    /**
-                     * Handdle error
-                     */
+                    if (empty($response1['feedback']['ERROR'])) {
+                        $res[] = $response1;
+                        $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                    } else {
+                        $error_count[] = $response1['feedback']['ERROR'];
+                        $res[] = $response1;
+                        /**
+                         * Handdle error
+                         */
+                    }
                 }
                 //  dd($response1['feedback']);                
             } else {
@@ -714,17 +744,32 @@ class FaceApiController extends BaseController {
                     unset($dtsent[$ksent]['RECORD_ID']);
                 }
                 $response2 = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
-                if (empty($response2['feedback']['ERROR'])) {
-                    foreach ($dtsent1 as $oksent) {
-                        $delivered_ids[] = $oksent['RECORD_ID'];
-                    }
-                    $res[] = $response2;
+                if (!empty($response2['status_code']) && $response2['status_code'] == 500) {
+                    $this->log_event($sent_data, $response2['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
+                    $responses = array(
+                        'status' => 'success',
+                        'data' => [
+                            array(
+                                'code' => 200,
+                                'message' => 'Fail - data not transfered',
+                                'original' => $response2['feedback']
+                            )
+                        ]
+                    );
+                    return $responses;
                 } else {
-                    $error_count[] = $response2['feedback']['ERROR'];
-                    $res[] = $response2;
-                    /**
-                     * Handdle error
-                     */
+                    if (empty($response2['feedback']['ERROR'])) {
+                        foreach ($dtsent1 as $oksent) {
+                            $delivered_ids[] = $oksent['RECORD_ID'];
+                        }
+                        $res[] = $response2;
+                    } else {
+                        $error_count[] = $response2['feedback']['ERROR'];
+                        $res[] = $response2;
+                        /**
+                         * Handdle error
+                         */
+                    }
                 }
                 //   dd($response2['feedback']);                
             }
@@ -740,6 +785,7 @@ class FaceApiController extends BaseController {
                     )
                 ]
             );
+
             $affected = DB::table('fa_accesscontrol')
                     ->whereIn('fa_accesscontrol_id', $updated_ids)
                     ->update(['sent_cpi' => 'Y']);
@@ -751,7 +797,7 @@ class FaceApiController extends BaseController {
                         $affected = DB::table('fa_accesscontrol')
                                 ->where('firstname', $derr['EMPNR'])
                                 ->where('alarmtime', "$derr[SDATE] $derr[STIME]")
-                                ->update(['sent_cpi' => 'F','remark' => $derr['REMARK']]);
+                                ->update(['sent_cpi' => 'F', 'remark' => $derr['REMARK']]);
                     }
                 }
                 $this->log_event($sent_data, $responses, '', 'passing_to_cpi_oto');
