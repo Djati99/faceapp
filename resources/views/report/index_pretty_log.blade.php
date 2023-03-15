@@ -279,17 +279,37 @@
         <link type="text/css" href="{{asset('vendor/datatables/js/dataTables.checkboxes.css')}}" rel="stylesheet" />
         <script type="text/javascript" src="{{asset('vendor/datatables/js/dataTables.checkboxes.min.js')}}"></script>
         <script type="text/javascript">
+       var timer_fr = {
+            interval: null,
+            seconds: 50,
+            start: function () {
+                var self = this;
+                this.interval = setInterval(function () {
+                    self.seconds--;
 
+                    if (self.seconds == 0){
+                        //window.location.reload();
+                        self.seconds = 50;
+                        tableAttendance.draw();
+                    } 
+                }, 1000);
+            },
+
+            stop: function () {
+                window.clearInterval(this.interval)
+            }
+        }
             function myFunction() {
             location.reload();
             }
             $(document).ready(function ()
             {
-            $.ajaxSetup({
-            headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-            });
+                $.ajaxSetup({
+                    headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                timer_fr.start();
             })
 
                     function printDiv(divID) {

@@ -604,7 +604,7 @@ class FaceApiController extends BaseController {
                 ->where(function ($query) use ($strdate) {
                     $query->whereRaw("to_char(alarmtime::date, 'YYYY-MM-DD') = '$strdate'");
                 })
-                ->whereIn('sent_cpi', ['F', 'N'])
+//                ->whereIn('sent_cpi', ['F', 'N'])
 //                ->where('sent_cpi', '!=', 'F')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')

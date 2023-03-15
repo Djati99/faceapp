@@ -295,8 +295,8 @@
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
             });
-            $('#startdate').datepicker({ format: 'yyyy-mm-dd', autoclose: true, });
-            $('#enddate').datepicker({ format: 'yyyy-mm-dd', autoclose: true, });
+            $('#startdate').datepicker({ format: 'yyyy-mm-dd', autoclose: true,endDate: '0' });
+            $('#enddate').datepicker({ format: 'yyyy-mm-dd', autoclose: true,endDate: '0' });
             $('#get_dss').click(function () {
             if (this.value !== 'undefined') {
             $.ajax({
