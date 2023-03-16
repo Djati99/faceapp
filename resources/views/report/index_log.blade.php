@@ -178,6 +178,7 @@
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Worker Code </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Worker ID </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Alarm Time </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Sending Time </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Clock IN/OUT </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Status </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 151px; text-align: center;"> Remark </th>
@@ -228,6 +229,7 @@
                     {data: 'personid', name: 'personid'},
                     {data: 'firstname', name: 'firstname'},
                     {data: 'alarmtime', name: 'alarmtime'},
+                    {data: 'created_at', name: 'created_at'},
                     {data: 'accesstype', name: 'accesstype'},
                     {data: 'sent_cpi', name: 'sent_cpi'},
                     {data: 'remark', name: 'remark'},

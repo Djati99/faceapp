@@ -22,7 +22,7 @@ class LogController extends BaseController {
         if ($request->ajax()) {
             $data = AccessControl::latest()->get();
             $data = DB::table('fa_accesscontrol')
-                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
+                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime','created_at', 'accesstype', 'unit_name')
                     ->whereIn('sent_cpi', ['F', 'Y'])
 //                ->offset(0)
                     ->orderBy('alarmtime', 'asc')
@@ -38,7 +38,7 @@ class LogController extends BaseController {
     public function report_formatted(Request $request) {
         if ($request->ajax()) {
             $data = DB::table('fa_accesscontrol')
-                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
+                    ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime','created_at', 'accesstype', 'unit_name')
                     ->whereIn('sent_cpi', ['F', 'Y'])
                     ->offset(0)
                     ->orderBy('alarmtime', 'asc')
