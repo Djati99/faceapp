@@ -292,6 +292,7 @@ class FaceController extends BaseController {
                 if ($sisa_jam < 1) {
                     $sisa_jam = 0;
                 }
+//                $new_data[$personid]->no_urut = count($swipetime) + 1;
                 $new_data[$personid]->total_rest = $sisa_jam . "h" . ($minutes_rests % 60) . "m";
             }
 
@@ -309,6 +310,12 @@ class FaceController extends BaseController {
              * ingat format laporan ada TIME IN - TIME OUT
              */
             $result = array_values($new_data);
+            $no = 1;
+            foreach($result as $keyr=>$rslt){
+                $result[$keyr]->no_urut = $no;
+                $no++;
+            }
+//            dd($new_data);
            
 //            dd($result);
             $dttable = Datatables::of($result)->make(true);
