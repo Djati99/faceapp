@@ -597,14 +597,14 @@ class FaceApiController extends BaseController {
 //        $enddate = date('Y-m-d 23:59:59');
 
 
-        $strdate = '2022-12-07';
+//        $strdate = '2022-12-07';
 //        $enddate = '2023-01-26';
         $data = DB::table('fa_accesscontrol')
                 ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime', 'accesstype', 'unit_name')
                 ->where(function ($query) use ($strdate) {
                     $query->whereRaw("to_char(alarmtime::date, 'YYYY-MM-DD') = '$strdate'");
                 })
-                ->whereIn('sent_cpi', ['F', 'N'])
+//                ->whereIn('sent_cpi', ['F', 'N'])
 //                ->where('sent_cpi', '!=', 'F')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')

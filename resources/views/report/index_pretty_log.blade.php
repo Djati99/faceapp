@@ -168,8 +168,16 @@
                                             <div class="col-md-2">
                                                 <div class="input-group date-picker input-daterange" data-date-format="yyyy-mm-dd" data-date-end-date="0d">
                                                     <input class="form-control" name="from" placeholder="From" type="text" id="enddate" value="{{date('Y-m-d')}}" autocomplete="off">
-                                                    <!--<span class="input-group-addon"> to </span>-->
-                                                    <!--<input class="form-control" name="to" placeholder="To" type="text" value="09-12-2022" autocomplete="off">--> 
+                                                </div>
+                                            </div>
+                                            <label class="col-md-1 control-label" style="text-align:left;">Status</label>
+                                            <div class="col-md-2">
+                                                <div class="input-group date-picker input-daterange" data-date-format="yyyy-mm-dd" data-date-end-date="0d">
+                                                    <select class="form-control" id="status" name="status" aria-controls="" class="">
+                                                        <option value="ALL">ALL</option>
+                                                        <option value="Y">Success</option>
+                                                        <option value="F">Failed</option>
+                                                    </select>                                                    
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
@@ -204,6 +212,7 @@
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Worker Code </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Worker ID </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Alarm Time </th>
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Sending Time </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Clock IN/OUT </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Status </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 151px; text-align: center;"> Remark </th>
@@ -271,17 +280,37 @@
         <link type="text/css" href="{{asset('vendor/datatables/js/dataTables.checkboxes.css')}}" rel="stylesheet" />
         <script type="text/javascript" src="{{asset('vendor/datatables/js/dataTables.checkboxes.min.js')}}"></script>
         <script type="text/javascript">
+       var timer_fr = {
+            interval: null,
+            seconds: 50,
+            start: function () {
+                var self = this;
+                this.interval = setInterval(function () {
+                    self.seconds--;
 
+                    if (self.seconds == 0){
+                        //window.location.reload();
+                        self.seconds = 50;
+                        tableAttendance.draw();
+                    } 
+                }, 1000);
+            },
+
+            stop: function () {
+                window.clearInterval(this.interval)
+            }
+        }
             function myFunction() {
             location.reload();
             }
             $(document).ready(function ()
             {
-            $.ajaxSetup({
-            headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-            });
+                $.ajaxSetup({
+                    headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                timer_fr.start();
             })
 
                     function printDiv(divID) {
@@ -326,8 +355,9 @@
                     ajax: {
                     url: "{{ url('log/data_beautifullify_log') }}",
                             data: function (d) {
-                            d.enddate = $('#enddate').val(),
-                                    d.searchbox = $("div.dataTables_filter input").val()
+                                d.enddate = $('#enddate').val(),
+                                d.status = $('#status').val(),
+                                d.searchbox = $("div.dataTables_filter input").val()
                             },
                             method : 'get',
                             dataType: 'json'
@@ -365,10 +395,10 @@
                     {data: 'personid', name: 'personid'},
                     {data: 'firstname', name: 'firstname'},
                     {data: 'alarmtime', name: 'alarmtime'},
+                    {data: 'created_at', name: 'created_at'},
                     {data: 'accesstype', name: 'accesstype'},
 //                    {data: 'sent_cpi', name: 'sent_cpi'},
                               {data: null, name:'sent_cpi', render: function (data, type, row) {
-                            console.info('data',data,data.sent_cpi);
                             var stts = 'Failed';
                             if(data.sent_cpi == 'Y'){
                                 stts = 'Success';
@@ -385,13 +415,12 @@
                     order: [[0, 'desc']]
             });
             $(document).on('click', '.doSearch', function (e) {
-            e.preventDefault();
-            var e_date = $('#enddate').val();
-            console.info('edate', e_date);
-            if (e_date == '') {
-            return false;
-            }
-            tableAttendance.draw();
+                e.preventDefault();
+                var e_date = $('#enddate').val();
+                if (e_date == '') {
+                return false;
+                }
+                tableAttendance.draw();
             });
             $(document).on('click', '#export_transaction_btn', function (i) {
             var tipe = i.target.dataset.type;

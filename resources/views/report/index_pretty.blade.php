@@ -167,6 +167,7 @@
                                         <table class="table table-bordered table-hover" id="att_table">
                                             <thead>
                                                 <tr role="row">                                                           
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" width="30px" aria-label=" "> No. </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" width="100px" aria-label=" ID"> Name Of Staff </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="2" colspan="1" width="70px" aria-label=" work_date"> Work Date </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="2" style="width: 51px; text-align: center;" aria-label="Time"> Time </th>
@@ -252,18 +253,38 @@
         <link type="text/css" href="{{asset('vendor/datatables/js/dataTables.checkboxes.css')}}" rel="stylesheet" />
         <script type="text/javascript" src="{{asset('vendor/datatables/js/dataTables.checkboxes.min.js')}}"></script>
         <script type="text/javascript">
+       var timer_fr = {
+            interval: null,
+            seconds: 50,
+            start: function () {
+                var self = this;
+                this.interval = setInterval(function () {
+                    self.seconds--;
 
+                    if (self.seconds == 0){
+                        //window.location.reload();
+                        self.seconds = 50;
+                        tableAttendance.draw();
+                    } 
+                }, 1000);
+            },
+
+            stop: function () {
+                window.clearInterval(this.interval)
+            }
+        }
             function myFunction() {
             location.reload();
             }
             $(document).ready(function ()
-                    {
-                    $.ajaxSetup({
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                    });
-                    })
+            {
+                $.ajaxSetup({
+                headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+                });
+                timer_fr.start();
+            })
 
                     function printDiv(divID) {
                     //Get the HTML of div
@@ -362,6 +383,7 @@
                     },
                     ],
                     columns: [
+                              {data: 'no_urut', name:'no_urut'},
                               {data: null, name:'nama_personnel', render: function (data, type, row) {
 //                    console.info('info',data);
                     return '<div class="form-control1" id="" type="text" style="font-size: 0.75rem;width: 210px;padding: .5rem 0;" >' + data.nama_personnel + '</div>';
@@ -389,7 +411,7 @@
                          [10, 25, 50, 100, -1],
                          [10, 25, 50, 100, 'All'],
                      ],
-                    order: [[0, 'desc']]
+                    order: [[0, 'asc']]
             });
             $(document).on('click', '.doSearch', function () {
             var e_date = $('#enddate').val();
