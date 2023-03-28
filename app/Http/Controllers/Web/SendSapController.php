@@ -40,13 +40,13 @@ class SendSapController extends BaseController {
         if (!empty($request->type) && $request->type == 'resend') {
             $this->keep_alive($setting);
             $this->resend_to_cpi($request, $setting);
-        }if (!empty($request->type) && $request->type == 'pull') {
+        }elseif (!empty($request->type) && $request->type == 'pull') {
             $this->keep_alive($setting);
             $this->crawling_passing_attendance($request, $setting);
-        }if (!empty($request->type) && $request->type == 'push') {
+        }elseif (!empty($request->type) && $request->type == 'push') {
             $this->keep_alive($setting);
             $this->passing_to_cpi($request, $setting);
-        } else {
+        }else {
             $this->keep_alive($setting);
             $this->crawling_passing_attendance($request, $setting);
             $this->passing_to_cpi($request, $setting);
@@ -430,7 +430,7 @@ class SendSapController extends BaseController {
                 ->where('sent_cpi', '=', 'N')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')
-                ->limit(200)
+               // ->limit(200)
                 ->get();
         $arr_data = $data->toArray();
 //        

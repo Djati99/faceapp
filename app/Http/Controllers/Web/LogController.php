@@ -164,7 +164,11 @@ class LogController extends BaseController {
                 $result[] = $dt_access;
             }
 
-
+            $no = 1;
+            foreach($result as $keyr=>$rslt){
+                $result[$keyr]->no_urut = $no;
+                $no++;
+            }
             $dttable = Datatables::of($result)->make(true);
             return $dttable;
         }

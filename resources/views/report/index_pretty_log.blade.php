@@ -33,7 +33,7 @@
         <link href="{{asset('vendor/template_assets/layouts/layout4/css/themes/default.min.css')}}" rel="stylesheet" type="text/css" id="style_color" />
         <link href="{{asset('vendor/template_assets/layouts/layout4/css/custom.min.css')}}" rel="stylesheet" type="text/css" />
         <link rel="shortcut icon" type="image/png" href="{{asset('assets/img/ioi_icon.png')}}"/>
-     <style>
+        <style>
             #spinner-div {
                 position: fixed;
                 display: none;
@@ -207,7 +207,8 @@
                                     <div class="table">
                                         <table class="table table-bordered table-hover" id="log_table">
                                             <thead>
-                                                <tr role="row">                                                           
+                                                <tr role="row">
+                                                    <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="30px" aria-label=" "> No. </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Device IP </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" width="70px"> Worker Code </th>
                                                     <th class="all sorting" tabindex="0" aria-controls="fr_table" rowspan="1" colspan="1" style="width: 51px; text-align: center;" > Worker ID </th>
@@ -280,37 +281,35 @@
         <link type="text/css" href="{{asset('vendor/datatables/js/dataTables.checkboxes.css')}}" rel="stylesheet" />
         <script type="text/javascript" src="{{asset('vendor/datatables/js/dataTables.checkboxes.min.js')}}"></script>
         <script type="text/javascript">
-       var timer_fr = {
+            var timer_fr = {
             interval: null,
-            seconds: 50,
-            start: function () {
-                var self = this;
-                this.interval = setInterval(function () {
+                    seconds: 50,
+                    start: function () {
+                    var self = this;
+                    this.interval = setInterval(function () {
                     self.seconds--;
-
                     if (self.seconds == 0){
-                        //window.location.reload();
-                        self.seconds = 50;
-                        tableAttendance.draw();
-                    } 
-                }, 1000);
-            },
-
-            stop: function () {
-                window.clearInterval(this.interval)
+                    //window.location.reload();
+                    self.seconds = 50;
+                    tableAttendance.draw();
+                    }
+                    }, 1000);
+                    },
+                    stop: function () {
+                    window.clearInterval(this.interval)
+                    }
             }
-        }
             function myFunction() {
             location.reload();
             }
             $(document).ready(function ()
             {
-                $.ajaxSetup({
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                timer_fr.start();
+            $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+            });
+            timer_fr.start();
             })
 
                     function printDiv(divID) {
@@ -355,9 +354,9 @@
                     ajax: {
                     url: "{{ url('log/data_beautifullify_log') }}",
                             data: function (d) {
-                                d.enddate = $('#enddate').val(),
-                                d.status = $('#status').val(),
-                                d.searchbox = $("div.dataTables_filter input").val()
+                            d.enddate = $('#enddate').val(),
+                                    d.status = $('#status').val(),
+                                    d.searchbox = $("div.dataTables_filter input").val()
                             },
                             method : 'get',
                             dataType: 'json'
@@ -391,6 +390,7 @@
                     },
                     ],
                     columns: [
+                    {data: 'no_urut', name:'no_urut'},
                     {data: 'devicename', name: 'devicename'},
                     {data: 'personid', name: 'personid'},
                     {data: 'firstname', name: 'firstname'},
@@ -399,28 +399,28 @@
                     {data: 'accesstype', name: 'accesstype'},
 //                    {data: 'sent_cpi', name: 'sent_cpi'},
                               {data: null, name:'sent_cpi', render: function (data, type, row) {
-                            var stts = 'Failed';
-                            if(data.sent_cpi == 'Y'){
-                                stts = 'Success';
-                            }
-                            return stts;
+                    var stts = 'Failed';
+                    if (data.sent_cpi == 'Y'){
+                    stts = 'Success';
+                    }
+                    return stts;
 //                    return '<div class="form-control1" id="" type="text" style="font-size: 0.75rem;width: 210px;padding: .5rem 0;" >' + data.nama_personnel + '</div>';
-                                }},                    
+                                }},
                     {data: 'remark', name: 'remark'},
                     ],
                     lengthMenu: [
                     [10, 25, 50, 100, - 1],
                     [10, 25, 50, 100, 'All'],
                     ],
-                    order: [[0, 'desc']]
+                    order: [[0, 'asc']]
             });
             $(document).on('click', '.doSearch', function (e) {
-                e.preventDefault();
-                var e_date = $('#enddate').val();
-                if (e_date == '') {
-                return false;
-                }
-                tableAttendance.draw();
+            e.preventDefault();
+            var e_date = $('#enddate').val();
+            if (e_date == '') {
+            return false;
+            }
+            tableAttendance.draw();
             });
             $(document).on('click', '#export_transaction_btn', function (i) {
             var tipe = i.target.dataset.type;
@@ -431,24 +431,24 @@
             } else if (tipe == 3) {
             tableAttendance.button('.buttons-print').trigger();
             } else if (tipe == 99) {
-                $.ajax({
-                    method: "POST",
+            $.ajax({
+            method: "POST",
                     url: "sendsap.transfer",
                     data: {type: 'resend'},
                     dataType: 'json',
                     beforeSend: function () {
-                        $('#spinner-div').show();
+                    $('#spinner-div').show();
                     },
                     success: function (msg) {
-                        $('#spinner-div').hide();
-                        if (msg.status == 'success') {
-                            alert("Transfer completed.");
-                        } else {
-                            var txt = 'Transfer Completed.' + msg.message
+                    $('#spinner-div').hide();
+                    if (msg.status == 'success') {
+                    alert("Transfer completed.");
+                    } else {
+                    var txt = 'Transfer Completed.' + msg.message
                             alert(txt)
-                        }
                     }
-                })
+                    }
+            })
             }
             });
             $("div.dataTables_filter input").unbind();

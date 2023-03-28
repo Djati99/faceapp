@@ -384,74 +384,6 @@ class FaceApiController extends BaseController {
         return $return;
     }
 
-    protected function crawling_face_recognition_ori(Request $request, $_token) {
-//        $x_ploded_data = json_decode('{"code":1000,"desc":"Success","data":{"nextPage":"2","totalCount":"2147483647","pageData":[{"id":"1","swipeTime":"2018-09-20 10:23:23","code":"12341","name":"test12341","deptName":"Root","cardNumber":"12345676","personPic":"","swipeLocation":"test","eventName":"1"},{"id":"2","swipeTime":"2018-09-20 11:23:23","code":"12345","name":"test12345","deptName":"Root","cardNumber":"12345677","personPic":"","swipeLocation":"test","eventName":"1"},{"id":"3","swipeTime":"2018-09-20 12:23:23","code":"12342","name":"test12342","deptName":"Root","cardNumber":"12345678","personPic":"","swipeLocation":"test","eventName":"1"}]}}', 1);
-//        $return['status'] = 1;
-//        $return['data'] = $x_ploded_data['data'];
-//        $return['code'] = 200;
-//        $return['message'] = 'sukses';
-//
-//        return $return;
-        /**
-         * H- 1
-         */
-        $data_now = date(date('Y-m-d'), strtotime(' -1 day'));    // previous day ;
-        $server = config('face.API_FACEAPI_DOMAIN');
-        $params = urlencode("page?startTime=$data_now 00:00:00&endTime=$data_now 23:59:59&personName=&personId=&deptId=&eventType=0&page=1&pageSize=100&displayServerTimezoneOffset=0");
-//        dd("https://172.16.8.79:443/brms/api/v1.0/attendance/swiping-card-report/$params");
-        $ch = curl_init("https://$server/brms/api/v1.0/attendance/swiping-card-report/$params");
-//        $ch = curl_init("https://172.16.8.79:443/brms/api/v1.0/attendance/swiping-card-report/$params");
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'X-Subject-Token:' . $_token,
-            'charset:UTF-8',
-            'Time-Zone:Asia/Shanghai'
-                )
-        );
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-        $result = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-//        dd([$result,$httpcode]);
-        curl_close($ch);
-
-        if ($httpcode == 200) {
-            $return['status'] = 1;
-            $parse_result = json_decode($result, 1);
-            if ($parse_result['code'] == 1000) {
-                $return['data'] = $result;
-            } else {
-                $return['status'] = 0;
-                $return['data'] = [];
-                $return['code'] = $parse_result['code'];
-                $return['message'] = $parse_result['desc'];
-                $params = array(
-                    'start_check' => "$data_now 00:00:01",
-                    'end_check' => "$data_now 23:59:59",
-                );
-                $responses = array(
-                    'status' => 'error',
-                    'data' => [
-                        array(
-                            'code' => $parse_result['code'],
-                            'message' => $parse_result['desc']
-                        )
-                    ]
-                );
-                $this->log_event($params, $responses, '', 'crawling_face_recognition_ori');
-            }
-        } else {
-            $return['status'] = 0;
-            $return['data'] = [];
-            $return['code'] = $httpcode;
-            $return['message'] = 'Connection error';
-        }
-        return $return;
-    }
-
     protected function do_auth_false() {
         $_token = date('Ymd') . "|" . date('H:i:s') . "|" . "XXX-YYY-ZZZ";
         Storage::disk('local')->put('_token.txt', $_token);
@@ -595,8 +527,6 @@ class FaceApiController extends BaseController {
 //        $enddate = $strdate;
 //        $strdate = date('Y-m-d 00:00:01');
 //        $enddate = date('Y-m-d 23:59:59');
-
-
 //        $strdate = '2022-12-07';
 //        $enddate = '2023-01-26';
         $data = DB::table('fa_accesscontrol')
@@ -604,7 +534,7 @@ class FaceApiController extends BaseController {
                 ->where(function ($query) use ($strdate) {
                     $query->whereRaw("to_char(alarmtime::date, 'YYYY-MM-DD') = '$strdate'");
                 })
-//                ->whereIn('sent_cpi', ['F', 'N'])
+                ->whereIn('sent_cpi', ['F', 'N'])
 //                ->where('sent_cpi', '!=', 'F')
                 ->offset(0)
                 ->orderBy('alarmtime', 'asc')
@@ -677,19 +607,45 @@ class FaceApiController extends BaseController {
                         unset($dtsent[$ksent]['RECORD_ID']);
                     }
                     $response0 = send_time_attendance_to_cpi($dtsent, $prfnr_list[$i], false);
-                    if (!empty($response0['status_code']) && $response0['status_code'] == 500) {
-                        $this->log_event($sent_data, $response0['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
-                        $responses = array(
-                            'status' => 'success',
-                            'data' => [
-                                array(
-                                    'code' => 200,
-                                    'message' => 'Fail - data not transfered',
-                                    'original' => $response0['feedback']
-                                )
-                            ]
-                        );
-                        return $responses;
+                    if (!empty($response0['status_code'])) {
+                        if ($response0['status_code'] == 500) {
+                            $this->log_event($sent_data, $response0['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
+                            $responses = array(
+                                'status' => 'success',
+                                'data' => [
+                                    array(
+                                        'code' => 500,
+                                        'message' => 'Fail - data not transfered',
+                                        'original' => $response0['feedback']
+                                    )
+                                ]
+                            );
+                            return $responses;
+                        } elseif ($response0['status_code'] == 200) {
+                            if (empty($response0['feedback']['ERROR'])) {
+                                $res[] = $response0;
+                                $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                            } else {
+                                $error_count[] = $response0['feedback']['ERROR'];
+                                $res[] = $response0;
+                                /**
+                                 * Handdle error
+                                 */
+                            }
+                        } else {
+                            $this->log_event($sent_data, $response0['data'], '', 'passing_to_cpi_oto', 'FAIL');
+                            $responses = array(
+                                'status' => 'success',
+                                'data' => [
+                                    array(
+                                        'code' => $response0['status_code'],
+                                        'message' => 'Fail - data not transfered',
+                                        'original' => $response0['data']
+                                    )
+                                ]
+                            );
+                            return $responses;
+                        }
                     } else {
                         if (empty($response0['feedback']['ERROR'])) {
                             $res[] = $response0;
@@ -710,19 +666,45 @@ class FaceApiController extends BaseController {
                     unset($dtsent[$ksent]['RECORD_ID']);
                 }
                 $response1 = send_time_attendance_to_cpi($dtsent, $prfnr_list[count($prfnr_list) - 1], true);
-                if (!empty($response1['status_code']) && $response1['status_code'] == 500) {
-                    $this->log_event($sent_data, $response1['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
-                    $responses = array(
-                        'status' => 'success',
-                        'data' => [
-                            array(
-                                'code' => 200,
-                                'message' => 'Fail - data not transfered',
-                                'original' => $response1['feedback']
-                            )
-                        ]
-                    );
-                    return $responses;
+                if (!empty($response1['status_code'])) {
+                    if ($response1['status_code'] == 500) {
+                        $this->log_event($sent_data, $response1['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
+                        $responses = array(
+                            'status' => 'success',
+                            'data' => [
+                                array(
+                                    'code' => 200,
+                                    'message' => 'Fail - data not transfered',
+                                    'original' => $response1['feedback']
+                                )
+                            ]
+                        );
+                        return $responses;
+                    } elseif ($response1['status_code'] == 200) {
+                        if (empty($response1['feedback']['ERROR'])) {
+                            $res[] = $response1;
+                            $delivered_ids[] = $dtsent1[0]['RECORD_ID'];
+                        } else {
+                            $error_count[] = $response1['feedback']['ERROR'];
+                            $res[] = $response1;
+                            /**
+                             * Handdle error
+                             */
+                        }
+                    } else {
+                        $this->log_event($sent_data, $response1['data'], '', 'passing_to_cpi_oto', 'FAIL');
+                        $responses = array(
+                            'status' => 'success',
+                            'data' => [
+                                array(
+                                    'code' => $response1['status_code'],
+                                    'message' => 'Fail - data not transfered',
+                                    'original' => $response1['data']
+                                )
+                            ]
+                        );
+                        return $responses;
+                    }
                 } else {
                     if (empty($response1['feedback']['ERROR'])) {
                         $res[] = $response1;
@@ -744,19 +726,47 @@ class FaceApiController extends BaseController {
                     unset($dtsent[$ksent]['RECORD_ID']);
                 }
                 $response2 = send_time_attendance_to_cpi($dtsent, $prfnr_list[0], true);
-                if (!empty($response2['status_code']) && $response2['status_code'] == 500) {
-                    $this->log_event($sent_data, $response2['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
-                    $responses = array(
-                        'status' => 'success',
-                        'data' => [
-                            array(
-                                'code' => 200,
-                                'message' => 'Fail - data not transfered',
-                                'original' => $response2['feedback']
-                            )
-                        ]
-                    );
-                    return $responses;
+                if (!empty($response2['status_code'])) {
+                    if ($response2['status_code'] == 500) {
+                        $this->log_event($sent_data, $response2['feedback'], '', 'passing_to_cpi_oto', 'FAIL');
+                        $responses = array(
+                            'status' => 'success',
+                            'data' => [
+                                array(
+                                    'code' => 200,
+                                    'message' => 'Fail - data not transfered',
+                                    'original' => $response2['feedback']
+                                )
+                            ]
+                        );
+                        return $responses;
+                    } elseif ($response2['status_code'] == 200) {
+                        if (empty($response2['feedback']['ERROR'])) {
+                            foreach ($dtsent1 as $oksent) {
+                                $delivered_ids[] = $oksent['RECORD_ID'];
+                            }
+                            $res[] = $response2;
+                        } else {
+                            $error_count[] = $response2['feedback']['ERROR'];
+                            $res[] = $response2;
+                            /**
+                             * Handdle error
+                             */
+                        }
+                    } else {
+                        $this->log_event($sent_data, $response2['data'], '', 'passing_to_cpi_oto', 'FAIL');
+                        $responses = array(
+                            'status' => 'success',
+                            'data' => [
+                                array(
+                                    'code' => $response2['status_code'],
+                                    'message' => 'Fail - data not transfered',
+                                    'original' => $response2['data']
+                                )
+                            ]
+                        );
+                        return $responses;
+                    }
                 } else {
                     if (empty($response2['feedback']['ERROR'])) {
                         foreach ($dtsent1 as $oksent) {
@@ -804,111 +814,6 @@ class FaceApiController extends BaseController {
             }
         }
         return $responses;
-    }
-
-    protected function passing_to_cpi_ori(Request $request) {
-        /**
-         * BTP Integration Suite
-         */
-        $data_string = '{
-            "urn:ZEPMS_EM_VRA_OUT": {
-                "BUKRS": "*",
-                "AUART": "*"
-            }
-        }';
-        $ch = curl_init("https://domain_server_cpi/sent");
-
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($ch, CURLOPT_USERPWD, "S0020948634:IOISCP#3");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/xml'));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-
-        $result = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-//        var_dump($result);
-//        var_dump($httpcode);
-//        exit;
-        curl_close($ch);
-
-        if ($httpcode == 200) {
-            $data = json_decode($result);
-        } else {
-            $data = $result;
-        }
-    }
-
-    public function populate(Request $request) {
-        $zone = config('face.API_ZONE');
-        if ($zone == 'MY') {
-            date_default_timezone_set('Asia/Kuala_Lumpur');
-        } else {
-            date_default_timezone_set('Asia/Jakarta');
-        }
-//        var_dump(['ok' => 'tes']);exit;
-
-        $newLog = new RequestLog();
-//        '',
-//        'params',
-//        'response_status',
-//        'response_message',
-//        'created_at'      
-        $params = array(
-            'start_check' => date('Y-m-d 00:00:01'),
-            'end_check' => date('Y-m-d 23:59:59'),
-        );
-        $responses = array(
-            'status' => 'ok',
-            'data' => [
-                array(
-                    'employee_sap_id' => 'WAL-WIL',
-                    'swip_time' => date('Y-m-d H:i:s')
-                )
-            ]
-        );
-        $now = date('Y-m-d H:i:s');
-
-        $newLog->transaction_type = 'ATTENDANCE';
-        $newLog->url = 'faceapi.test/populate';
-        $newLog->params = json_encode($params);
-        $newLog->response_status = 'OK';
-        $newLog->response_message = json_encode($responses);
-        $newLog->created_at = $now;
-        $newLog->save();
-
-//        RequestLog::create($request->all());
-//        $request->validate([
-//            'name' => 'required',
-//            'description' => 'required',
-//            'price' => 'required'
-//        ]);
-        $str = '{"code":1000,"desc":"Success","data":{"nextPage":"2","totalCount":"2147483647","pageData":[{"id":"1","swipeTime":"2018-09-20 10:23:23","code":"12341","name":"test12341","deptName":"Root","cardNumber":"12345676","personPic":"","swipeLocation":"test","eventName":"1"},{"id":"2","swipeTime":"2018-09-20 11:23:23","code":"12345","name":"test12345","deptName":"Root","cardNumber":"12345677","personPic":"","swipeLocation":"test","eventName":"1"},{"id":"3","swipeTime":"2018-09-20 12:23:23","code":"12342","name":"test12342","deptName":"Root","cardNumber":"12345678","personPic":"","swipeLocation":"test","eventName":"1"}]}}';
-        $decoded_att = json_decode($str, 1);
-
-//        var_dump($decoded_att);
-        if (!empty($decoded_att['data']['pageData'])) {
-//            var_dump($decoded_att['data']['pageData']);
-            $list_attendance = $decoded_att['data']['pageData'];
-            foreach ($list_attendance as $dt_att) {
-                $att = array(
-                    'personnelCode' => $dt_att['code'],
-                    'personnelName' => $dt_att['name'],
-                    'deptName' => $dt_att['deptName'],
-                    'cardNumber' => $dt_att['cardNumber'],
-                    'swipeLocation' => $dt_att['swipeLocation'],
-                    'swipeTime' => $dt_att['swipeTime'],
-                    'swipDirection' => 'OUT',
-                    'eventName' => $dt_att['eventName'],
-                );
-                $this->insert_attendance($att, $now);
-            }
-        }
-        echo json_encode(['status' => 'ok', 'attendance' => 'updated']);
-//        return redirect()->route('products.index')
-//            ->with('success', 'Product created successfully.');
     }
 
     public function destroy(Product $product) {
