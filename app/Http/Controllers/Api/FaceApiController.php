@@ -673,7 +673,7 @@ class FaceApiController extends BaseController {
                             'status' => 'success',
                             'data' => [
                                 array(
-                                    'code' => 200,
+                                    'code' => 500,
                                     'message' => 'Fail - data not transfered',
                                     'original' => $response1['feedback']
                                 )
@@ -733,7 +733,7 @@ class FaceApiController extends BaseController {
                             'status' => 'success',
                             'data' => [
                                 array(
-                                    'code' => 200,
+                                    'code' => 500,
                                     'message' => 'Fail - data not transfered',
                                     'original' => $response2['feedback']
                                 )
