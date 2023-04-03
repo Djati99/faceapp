@@ -206,6 +206,9 @@ class FaceApiController extends BaseController {
 //            } else {
 //                $direction = "IN";
 //            }
+            unset($newAccess->alarmtypename);
+            unset($newAccess->captureimageurl);
+            
             $newAccess->accesstype = $direction;
             $newAccess->unit_name = $ops_unit;
             $newAccess->created_at = $now;
