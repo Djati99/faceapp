@@ -129,6 +129,17 @@ class FaceApiController extends BaseController {
                                 if (empty($dt_att['firstName'])) {
                                     continue;
                                 }
+                                /**
+                                 * 2023/06/06
+                                 * ada case ID worker lebih dari 30 char
+                                 * 
+                                 * bikin error
+                                 * 
+                                 * harus dibuang
+                                 */
+                                if (strlen($dt_att['firstName']) > 30) {
+                                    continue;
+                                }                                
                                 unset($dt_att['id']);
                                 if (strtoupper($dt_att['deviceName']) == $report_setting->ip_clock_in) {
                                     $direction = "IN";
