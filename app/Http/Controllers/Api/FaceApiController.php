@@ -29,12 +29,12 @@ class FaceApiController extends BaseController {
      * @return \Illuminate\Http\Response
      */
     public function keep_alive(Request $request) {
-        $zone = config('face.API_ZONE');
+  /*       $zone = config('face.API_ZONE');
         if ($zone == 'MY') {
             date_default_timezone_set('Asia/Kuala_Lumpur');
         } else {
             date_default_timezone_set('Asia/Jakarta');
-        }
+        } */
         $report_setting = DB::table('fa_setting')->latest('fa_setting_id')->first();
         $ip_server = $report_setting->ip_server_fr;
         $ops_unit = $report_setting->unit_name;
@@ -53,7 +53,7 @@ class FaceApiController extends BaseController {
 //            dd($exploded_isi_token[0]);
                         //Sudah pernah looping / pernah run authentication
                         // do heartbeat
-                        $datetimestamp = strtotime('+30 minutes', strtotime("$exploded_isi_token[0] $exploded_isi_token[1]"));
+                        $datetimestamp = strtotime('+25 minutes', strtotime("$exploded_isi_token[0] $exploded_isi_token[1]"));
                         $is_run_auth = Storage::disk('local')->get('_run_cron.txt');
                         if ($is_run_auth == 'Y') {
                             //Storage::disk('local')->put('_token.txt', $datetimestamp."-".strtotime('now'));
@@ -501,7 +501,7 @@ class FaceApiController extends BaseController {
         } else {
             $server = $ip_server;
         }
-        $ch = curl_init("https://" . $server . "/admin/API/v1.0/accounts/keepalive");
+        $ch = curl_init("https://" . $server . "/brms/api/v1.0/accounts/keepalive");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-Type:application/json',
             'X-Subject-Token:' . $_token

@@ -37,17 +37,20 @@ class SendSapController extends BaseController {
         }
         $setting = Setting::orderBy('fa_setting_id', 'desc')->first();
 
+		//var_dump([$request->type]);die();
         if (!empty($request->type) && $request->type == 'resend') {
-            $this->keep_alive($setting);
+           // $this->keep_alive($setting);
             $this->resend_to_cpi($request, $setting);
         }elseif (!empty($request->type) && $request->type == 'pull') {
             $this->keep_alive($setting);
+			//	var_dump(["ok"]);die();
             $this->crawling_passing_attendance($request, $setting);
+			
         }elseif (!empty($request->type) && $request->type == 'push') {
-            $this->keep_alive($setting);
+           // $this->keep_alive($setting);
             $this->passing_to_cpi($request, $setting);
         }else {
-            $this->keep_alive($setting);
+          //  $this->keep_alive($setting);
             $this->crawling_passing_attendance($request, $setting);
             $this->passing_to_cpi($request, $setting);
         }
@@ -75,12 +78,15 @@ class SendSapController extends BaseController {
         $isi_token = Storage::disk('local')->get('_token.txt');
         if ($isi_token) {
             $exploded_isi_token = explode("|", $isi_token);
+			//var_dump($exploded_isi_token);die();
             if (count($exploded_isi_token) >= 3) {
                 if ($exploded_isi_token[0] == date('Ymd')) {
-                    $_token = $exploded_isi_token[2];
+                    $_token = trim($exploded_isi_token[2]);
 
                     //Access IN
                     $response_fr = $this->crawling_face_recognition_in($request, $_token, $ip_server, $report_setting);
+					
+					//echo json_encode($response_fr);die();
                     if ($response_fr['status'] == 1) {
 //                        dd($response_fr);
                         $list_attendance = $response_fr['data']['pageData'];
@@ -109,7 +115,9 @@ class SendSapController extends BaseController {
                                  */
                                 if (strlen($dt_att['firstName']) > 30) {
                                     continue;
-                                }        $att['REMARK'] = "";                                
+                                }        
+								
+								$att['REMARK'] = "";                                
                                 unset($dt_att['id']);
                                 if (strtoupper($dt_att['deviceName']) == $report_setting->ip_clock_in) {
                                     $direction = "IN";
@@ -179,11 +187,11 @@ class SendSapController extends BaseController {
          */
         //date_default_timezone_set('GMT');
         $zone = config('face.API_ZONE');
-        if ($zone == 'MY') {
+/*         if ($zone == 'MY') {
             date_default_timezone_set('Asia/Kuala_Lumpur');
         } else {
             date_default_timezone_set('Asia/Jakarta');
-        }
+        } */
         $date_start = \DateTime::createFromFormat('Y-m-d H:i A', "$date_start 01:01 am");
         $date_end = \DateTime::createFromFormat('Y-m-d H:i A', "$date_end 11:59 pm");
         $timestamp_start = $date_start->format('U');
@@ -201,7 +209,7 @@ class SendSapController extends BaseController {
 
         $body_posted = '{
                         "page": "1",
-                        "pageSize": "200",
+                        "pageSize": "1000",
                         "channelIds": [],
                         "personId": "",
                         "startTime": "' . $timestamp_start . '",
@@ -612,12 +620,13 @@ class SendSapController extends BaseController {
 
             if ($isi_token) {
                 $exploded_isi_token = explode("|", $isi_token);
+            //var_dump($exploded_isi_token);die();
                 if (count($exploded_isi_token) >= 3) {
                     if ($exploded_isi_token[0] == date('Ymd')) {
 //            dd($exploded_isi_token[0]);
                         //Sudah pernah looping / pernah run authentication
                         // do heartbeat
-                        $datetimestamp = strtotime('+30 minutes', strtotime("$exploded_isi_token[0] $exploded_isi_token[1]"));
+                        $datetimestamp = strtotime('+25 minutes', strtotime("$exploded_isi_token[0] $exploded_isi_token[1]"));
                         $is_run_auth = Storage::disk('local')->get('_run_cron.txt');
                         if ($is_run_auth == 'Y') {
                             //Storage::disk('local')->put('_token.txt', $datetimestamp."-".strtotime('now'));
@@ -714,7 +723,7 @@ class SendSapController extends BaseController {
         curl_setopt($ch_token, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch_token, CURLOPT_CUSTOMREQUEST, 'POST');
         $result_token = curl_exec($ch_token);
-//        var_dump($result_token);exit;
+ //       var_dump($result_token);exit;
 //        $httpcode_token = curl_getinfo($ch_token, CURLINFO_HTTP_CODE);
         curl_close($ch_token);
         $decoded_res_token = json_decode($result_token, 1);
@@ -785,9 +794,9 @@ class SendSapController extends BaseController {
         } else {
             $server = $ip_server;
         }
-        $ch = curl_init("https://" . $server . "/admin/API/v1.0/accounts/keepalive");
+        $ch = curl_init("https://" . $server . "/brms/api/v1.0/accounts/keepalive");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type:application/json',
+            'Content-Type:application/json;charset=UTF-8',
             'X-Subject-Token:' . $_token
                 )
         );
@@ -796,8 +805,9 @@ class SendSapController extends BaseController {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         $result = curl_exec($ch);
+		//var_dump($result);die();
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-//        dd($httpcode);
+        //dd($httpcode);
         curl_close($ch);
         $zone = config('face.API_ZONE');
         $exploded_isi_token[3] = strtotime('now');
