@@ -61,7 +61,7 @@
                                 <span class="arrow "></span>
                             </a>
                         </li>
-                        <li class="nav-item ">
+                                <li class="nav-item ">
                             <a href="/report" class="nav-link nav-toggle">
                                 <i class="fa fa-chart-bar"></i>
                                 <span class="title">Report</span>
@@ -179,7 +179,7 @@
         </div>
         <div class="page-footer">
             <div class="page-footer-inner">
-                <a> FaceApi IOI V 3.2.0.1 (20221101)</a>
+                <a> FaceApi IOI V 3.3.0.3 (20230720)</a>
             </div>
             <div class="scroll-to-top" style="display: block;">
                 <i class="icon-arrow-up"></i>

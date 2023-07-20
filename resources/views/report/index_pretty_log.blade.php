@@ -232,7 +232,7 @@
         </div>
         <div class="page-footer">
             <div class="page-footer-inner">
-                <a> FR IOI V 1.1.0.1 (20221212)</a>
+                <a> FaceApi IOI V 3.3.0.3 (20230720)</a>
             </div>
             <div class="scroll-to-top">
                 <i class="icon-arrow-up"></i>
