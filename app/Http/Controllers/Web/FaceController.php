@@ -288,12 +288,19 @@ class FaceController extends BaseController {
                     }
                 }
                 //Rest Total
-                $sisa_jam = round($hours_rests + ($minutes_rests / 60));
-                if ($sisa_jam < 1) {
-                    $sisa_jam = 0;
+                if($minutes_rests >= 60){
+                    $sisa_jam = round(($minutes_rests / 60));
+                    if ($sisa_jam < 1) {
+                        $sisa_jam = 0;
+                    }
+                    $sisa_jam = $hours_rests + $sisa_jam;
+                    $minutes_rests = $minutes_rests % 60;
+                }else{
+                    $sisa_jam = $hours_rests;
                 }
 //                $new_data[$personid]->no_urut = count($swipetime) + 1;
-                $new_data[$personid]->total_rest = $sisa_jam . "h" . ($minutes_rests % 60) . "m";
+//                $new_data[$personid]->total_rest = "$hours_rests >> $minutes_rests".$sisa_jam . "h" . ($minutes_rests % 60) . "m";
+                $new_data[$personid]->total_rest =  $sisa_jam . "h" . ($minutes_rests) . "m";
             }
 
 //            dd([$new_data]);

@@ -199,7 +199,7 @@
         </div>
         <div class="page-footer">
             <div class="page-footer-inner">
-                <a> FaceApi IOI V 3.2.0.1 (20221101)</a>
+                <a> FaceApi IOI V 3.3.0.3 (20230720)</a>
             </div>
             <div class="scroll-to-top" style="display: block;">
                 <i class="icon-arrow-up"></i>

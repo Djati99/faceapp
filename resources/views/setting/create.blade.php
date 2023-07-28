@@ -8,7 +8,7 @@
         <meta content="width=device-width, initial-scale=1" name="viewport" />
         <meta name="robots" content="noindex,nofollow">
         <meta content="" name="author" />
-        <base href="http://localhost/faceapp/">
+        <base href="http://localhost:8080/faceapp/">
         <link rel="shortcut icon" href="{{asset('assets/img/ioi_icon.png')}}" />
 
         <link href="{{asset('vendor/font-awesome-old/css/font-awesome.min.css')}}" rel="stylesheet" type="text/css" />

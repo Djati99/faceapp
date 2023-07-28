@@ -20,7 +20,6 @@ class LogController extends BaseController {
 
     public function report(Request $request) {
         if ($request->ajax()) {
-            $data = AccessControl::latest()->get();
             $data = DB::table('fa_accesscontrol')
                     ->select('fa_accesscontrol_id', 'devicecode', 'devicename', 'channelid', 'channelname', 'alarmtypeid', 'personid', 'firstname', 'lastname', 'alarmtime','created_at', 'accesstype', 'unit_name')
                     ->whereIn('sent_cpi', ['F', 'Y'])
@@ -164,7 +163,11 @@ class LogController extends BaseController {
                 $result[] = $dt_access;
             }
 
-
+            $no = 1;
+            foreach($result as $keyr=>$rslt){
+                $result[$keyr]->no_urut = $no;
+                $no++;
+            }
             $dttable = Datatables::of($result)->make(true);
             return $dttable;
         }
